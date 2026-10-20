@@ -1,0 +1,22 @@
+.gradle/
+**/build/
+local.properties
+.idea/
+.DS_Store
+__pycache__/
+.venv/
+.wallpaper-backups/
+*.pyc
+*.apk
+*.aab
+*.jks
+*.keystore
+*.pem
+*.key
+.env
+.env.*
+*.log
+# Personal media are local build inputs, never public source.
+app/src/main/assets/wallpapers/*
+!app/src/main/assets/wallpapers/catalog.json
+!app/src/main/assets/wallpapers/README.md

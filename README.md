@@ -1,0 +1,110 @@
+# 归藏电视 · GuiZang TV
+
+一个给国内小米电视做的简洁桌面：大字、壁纸、常用应用，以及直接进入游戏机和 Apple TV 的入口。
+
+![归藏电视界面示意](docs/preview.svg)
+
+**[下载 v0.1.0 APK](https://github.com/op7418/guizang-tv/releases/latest)** · [兼容性与验证](docs/COMPATIBILITY.md) · [MIT 许可](LICENSE)
+
+这是从个人电视上的定制版本整理出的第一个公开版。目前重点适配小米电视 **MiTV-MTSU0**，不是面向所有 Android TV 的通用桌面替换工具。上图为公开版默认背景的布局示意。
+
+## 能做什么
+
+- 左侧大字列表：PlayStation 5、Apple TV、哔哩哔哩、小米投屏、相册、小米原桌面。
+- 在已适配机型上，PlayStation 5 直达 HDMI 2，Apple TV 直达 HDMI 1。
+- 右下角统一放置：壁纸设置、全部应用、其他信号源、设置。
+- 壁纸支持固定选择、自动轮播，默认每 5 分钟切换；可选 1 / 5 / 15 / 30 分钟。
+- 淡入淡出切换壁纸，离开桌面后暂停计时，返回后重新计时。
+- 遥控器方向键操作，记住上次选中的入口和壁纸偏好。
+- 不需要账号、网络权限或无障碍服务；不下载或预装视频 App。
+
+公开版自带五种渐变背景。个人试用版的照片没有随仓库或发布 APK 分发；你可以用自己的图片构建。
+
+## 安装与使用
+
+从 [Releases](https://github.com/op7418/guizang-tv/releases) 下载 APK，通过电视支持的本地安装方式安装。也可以在开启电视 ADB 调试、电脑连接同一网络后执行：
+
+```sh
+adb connect <电视IP>:5555
+adb install -r guizang-tv-v0.1.0.apk
+```
+
+端口和调试方式取决于电视固件。首次连接请在电视上确认调试授权；使用结束后可以关闭调试。
+
+安装后，在小米原桌面的应用列表中打开 **归藏电视**。
+
+| 遥控器操作 | 行为 |
+| --- | --- |
+| 上 / 下 | 切换当前区域中的项目 |
+| 右 | 从主列表进入右下角操作区 |
+| 左 | 返回主列表上次选中的项目 |
+| 确认 | 打开选中项目 |
+| 返回 | 关闭面板；从操作区回到主列表；适配机型上从主列表回小米原桌面 |
+| Home | 按系统原有设置工作，应用不拦截按键 |
+
+**建议先作为普通应用试用。** 已测试的 HyperOS 固件会忽略第三方默认桌面选择，因此本项目不承诺替换开机桌面或 Home 键。无需禁用原桌面，小爱同学、手机投屏、直播及 HDMI 系统组件均保留。真实语音、投屏、直播播放仍需自行验证。
+
+卸载「归藏电视」即可结束试用。公开版包名为 `io.github.op7418.guizangtv`，不会覆盖上游 cleanYourTV，也不会覆盖原有私人试用版，设置不会自动迁移。
+
+## 从源码构建
+
+要求：**JDK 17、Gradle 8.9、Android SDK Platform 34、Build Tools 34.0.0**。
+
+仓库只包含源码；Gradle 请通过 [官方发行版](https://gradle.org/releases/) 安装。也可以用 Android Studio 打开项目，并选择本地 Gradle 8.9。
+
+```sh
+git clone https://github.com/op7418/guizang-tv.git
+cd guizang-tv
+export ANDROID_HOME=/path/to/Android/sdk
+export JAVA_HOME=/path/to/jdk-17
+gradle :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
+```
+
+生成文件：`app/build/outputs/apk/debug/app-debug.apk`。首次构建需要联网下载 Android Gradle Plugin 和测试依赖，应用运行本身不需要联网。
+
+CI 会构建 Debug APK 并执行测试、lint；下载 Actions 产物需要登录 GitHub。Debug 包用于自行测试，不保证与 Releases 的正式签名兼容。
+
+Release 构建：
+
+```sh
+gradle :app:assembleRelease :app:testReleaseUnitTest :app:lintRelease
+```
+
+未设置签名时输出未签名 APK。维护者可在本地配置 `GUIZANG_KEYSTORE`、`GUIZANG_STORE_PASSWORD`、`GUIZANG_KEY_ALIAS`（默认 `guizang-tv`）和 `GUIZANG_KEY_PASSWORD`（默认同 store password），再构建签名版本。密钥和密码不应提交到 Git。
+
+## 使用自己的壁纸
+
+目前支持**构建时打包**，电视端可以从已打包的图片中选择；尚未提供电视端文件导入功能。
+
+准备 1–15 张 JPEG / PNG / WebP 图片，然后：
+
+```sh
+python3 -m venv .venv
+.venv/bin/pip install Pillow
+.venv/bin/python scripts/prepare_wallpapers.py /path/to/your/wallpapers
+gradle :app:assembleDebug
+```
+
+脚本保留原图，为电视生成最长边 1920 像素的副本与缩略图，并去除 EXIF。生成内容放在 Git 忽略的 `app/src/main/assets/wallpapers/local/` 中。重新构建后，这组图片会取代内置渐变；文件名作为壁纸名称。请只分发有权公开使用的图片。
+
+重复运行时，上一份生成结果会移到本地 `.wallpaper-backups/` 保留，避免旧照片混进新的安装包；备份目录也不进入 Git。
+
+如需恢复默认背景，将 `local/` 移到项目目录外备份，再重新构建。
+
+## 修改入口与适配电视
+
+- 应用名称、包名与 HDMI 入口在 [FrameHomeActivity.java](app/src/main/java/io/github/op7418/guizangtv/FrameHomeActivity.java) 的 `addRow(...)` 中配置，目前没有电视端编辑界面。
+- 小米接口集中在 [XiaomiControls.java](app/src/main/java/io/github/op7418/guizangtv/XiaomiControls.java)。HDMI 参数只在已验证机型上启用，不能仅添加机型名就视为完成适配。
+- 壁纸设置与轮播逻辑在 [FrameWallpapers.java](app/src/main/java/io/github/op7418/guizangtv/FrameWallpapers.java)。
+- 当前 PS5 / Apple TV 是入口名称，不代表自动识别到设备。请按实际接线修改端口。
+- 应用未安装时会显示提示；项目没有代装应用、账号登录或内容破解功能。
+
+欢迎通过 Issue 提交电视型号、Android / 固件版本和复现步骤。请隐去局域网地址、序列号、账号及调试密钥。
+
+## 来源与致谢
+
+本项目起步于 [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) 的本地定制，整理时提取了本次实现的原生列表桌面及小米适配。公开版不包含上游的一键清理脚本、旧 Dock 桌面、无障碍按键服务或系统应用禁用流程。
+
+界面方向参考 [nthnclrk/CleanFrame](https://github.com/nthnclrk/CleanFrame)：照片背景、大字纵向列表、克制的焦点高亮。Android 界面使用原生 Java 实现，没有移植 Tizen 运行代码或附带其照片。
+
+代码采用 MIT 许可，保留上游署名。详细来源见 [NOTICE.md](NOTICE.md)。
