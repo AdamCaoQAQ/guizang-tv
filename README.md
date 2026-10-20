@@ -4,9 +4,9 @@
 
 ![归藏电视界面示意](docs/preview.svg)
 
-**[下载 v0.1.0 APK](https://github.com/op7418/guizang-tv/releases/latest)** · [兼容性与验证](docs/COMPATIBILITY.md) · [MIT 许可](LICENSE)
+**[下载 v0.1.1 APK](https://github.com/op7418/guizang-tv/releases/latest)** · [兼容性与验证](docs/COMPATIBILITY.md) · [代码 MIT 许可](LICENSE)
 
-这是从个人电视上的定制版本整理出的第一个公开版。目前重点适配小米电视 **MiTV-MTSU0**，不是面向所有 Android TV 的通用桌面替换工具。上图为公开版默认背景的布局示意。
+这是从个人电视上的定制版本整理出的公开版。目前重点适配小米电视 **MiTV-MTSU0**，不是面向所有 Android TV 的通用桌面替换工具。上图为布局示意；实际内置照片见 [壁纸预览与署名](docs/WALLPAPERS.md)。
 
 ## 能做什么
 
@@ -18,7 +18,7 @@
 - 遥控器方向键操作，记住上次选中的入口和壁纸偏好。
 - 不需要账号、网络权限或无障碍服务；不下载或预装视频 App。
 
-公开版自带五种渐变背景。个人试用版的照片没有随仓库或发布 APK 分发；你可以用自己的图片构建。
+公开版自带五张经过来源核对的 Unsplash 照片：雾中雪岭、雨林山路、热带绿叶、山间彩虹、流光花影。图片适用 [Unsplash License](https://unsplash.com/license)，代码适用 MIT；[完整来源与署名](docs/WALLPAPERS.md)随源码和 APK 保存。其余版权未确认的照片未纳入。也可以用自己的图片构建。
 
 ## 安装与使用
 
@@ -26,7 +26,7 @@
 
 ```sh
 adb connect <电视IP>:5555
-adb install -r guizang-tv-v0.1.0.apk
+adb install -r guizang-tv-v0.1.1.apk
 ```
 
 端口和调试方式取决于电视固件。首次连接请在电视上确认调试授权；使用结束后可以关闭调试。
@@ -85,11 +85,11 @@ python3 -m venv .venv
 gradle :app:assembleDebug
 ```
 
-脚本保留原图，为电视生成最长边 1920 像素的副本与缩略图，并去除 EXIF。生成内容放在 Git 忽略的 `app/src/main/assets/wallpapers/local/` 中。重新构建后，这组图片会取代内置渐变；文件名作为壁纸名称。请只分发有权公开使用的图片。
+脚本保留原图，为电视生成最长边 1920 像素的副本与缩略图，并去除 EXIF。生成内容放在 Git 忽略的 `app/src/main/assets/wallpapers/local/` 中。重新构建后，桌面会优先使用这组图片，内置照片仍随 APK 保留；文件名作为壁纸名称。请只分发有权公开使用的图片。
 
 重复运行时，上一份生成结果会移到本地 `.wallpaper-backups/` 保留，避免旧照片混进新的安装包；备份目录也不进入 Git。
 
-如需恢复默认背景，将 `local/` 移到项目目录外备份，再重新构建。
+如需恢复默认的五张照片，将 `local/` 移到项目目录外备份，再重新构建。没有照片目录时会回退到五种渐变背景。
 
 ## 修改入口与适配电视
 

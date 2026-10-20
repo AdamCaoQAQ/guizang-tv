@@ -20,3 +20,6 @@ __pycache__/
 app/src/main/assets/wallpapers/*
 !app/src/main/assets/wallpapers/catalog.json
 !app/src/main/assets/wallpapers/README.md
+!app/src/main/assets/wallpapers/UNSPLASH-NOTICE.txt
+# Only the five explicitly selected, source-verified photos are public assets.
+!app/src/main/assets/wallpapers/bundled/
