@@ -1,6 +1,6 @@
 # 归藏电视：项目介绍、改造说明与使用指南
 
-本文对应 **v0.1.1**，整理于 **2026 年 10 月 21 日**。面向想了解项目、在电视上试用，或按自己需求修改源码的读者。
+本文对应 **v0.2.0**，整理于 **2026 年 10 月 21 日**。面向想了解项目、在电视上试用，或按自己需求修改源码的读者。
 
 ## 1. 这个项目解决什么问题？
 
@@ -12,7 +12,7 @@
 
 项目地址：[op7418/guizang-tv](https://github.com/op7418/guizang-tv)
 
-下载地址：[v0.1.1 安装包](https://github.com/op7418/guizang-tv/releases/tag/v0.1.1)
+下载地址：[v0.2.0 安装包](https://github.com/op7418/guizang-tv/releases/tag/v0.2.0)
 
 ## 2. 和前两个项目是什么关系？
 
@@ -21,7 +21,7 @@
 - **代码起点：**[Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv)。先在这个 Android TV 项目的基础上做本地定制，再整理出当前公开版。
 - **设计参考：**[nthnclrk/CleanFrame](https://github.com/nthnclrk/CleanFrame)。参考它的照片背景、大字纵向列表和克制的焦点表现；当前 Android 界面由原生 Java 实现，没有移植它的 Tizen 运行代码，也没有附带它的照片。
 
-下面比较的是本次开发时实际参考的版本：[cleanYourTV `69c93b6`](https://github.com/Gathin23/cleanyourtv/tree/69c93b66a75c70a9e386adff327b6a51c12addc5)、[CleanFrame `fa537d1`](https://github.com/nthnclrk/CleanFrame/tree/fa537d1892b71d2de2bf94c24cbff3812e9f70d5)，以及归藏电视 v0.1.1。它不是对上游后续版本的实时评测。
+下面比较的是本次开发时实际参考的版本：[cleanYourTV `69c93b6`](https://github.com/Gathin23/cleanyourtv/tree/69c93b66a75c70a9e386adff327b6a51c12addc5)、[CleanFrame `fa537d1`](https://github.com/nthnclrk/CleanFrame/tree/fa537d1892b71d2de2bf94c24cbff3812e9f70d5)，以及归藏电视 v0.2.0。它不是对上游后续版本的实时评测。
 
 | 维度 | cleanYourTV | CleanFrame | 归藏电视 |
 | --- | --- | --- | --- |
@@ -98,11 +98,11 @@
 
 **桌面本身可离线运行。** 不需要账号，没有网络权限、后台服务端或遥测实现。被打开的视频与投屏应用是否需要网络，由它们自身决定。
 
-**实现较小，便于按需修改。** UI、壁纸和机型适配集中在少量 Java 文件中，没有第三方运行时库；v0.1.1 签名 APK 约 1.95 MB。安装包小不等于已经证明它比其他桌面更快或更省内存。
+**实现较小，便于按需修改。** UI、壁纸和机型适配集中在少量 Java 文件中，没有第三方运行时库；v0.2.0 的签名 APK 约 1.95 MB。安装包小不等于已经证明它比其他桌面更快或更省内存。
 
 当前最适合的是：愿意保留原桌面、主要使用少数应用和 HDMI 设备、接受初期兼容性范围的用户。
 
-如果你需要跨品牌通用适配、开机自动接管、在电视上自由增删排序入口、联网图库或直接导入照片，当前版本还不能满足这些需求。cleanYourTV 和 CleanFrame 在各自平台上也有归藏电视没有保留的配置能力。
+v0.2.0 新增实验性开机自动进入，需要适配机型、一次 ADB 配置和应用内开关，详见[专门教程](BOOT-START.md)。如果你需要跨品牌通用适配、在电视上自由增删排序入口、联网图库或直接导入照片，当前版本还不能满足这些需求。cleanYourTV 和 CleanFrame 在各自平台上也有归藏电视没有保留的配置能力。
 
 ## 5. 安装前先确认兼容性
 
@@ -118,7 +118,7 @@
 
 最低编译要求为 Android 8 / API 26，**不是所有 Android 8 及以上电视均已兼容的承诺**。其他机型可能能显示桌面、打开已安装应用，但专用 HDMI、信号源及小米原桌面入口不一定可用。
 
-实机已检查过常用入口、遥控器焦点、固定壁纸保存和轮播。私人前身及公开版验证范围分别记录在[兼容性说明](COMPATIBILITY.md)与[首次公开发布记录](changes/2026-10-20-public-release.md)中。v0.1.1 增加内置照片并更新版本，未重新进行整套实机测试。
+实机已检查过常用入口、遥控器焦点、固定壁纸保存和轮播。私人前身及公开版验证范围分别记录在[兼容性说明](COMPATIBILITY.md)与[首次公开发布记录](changes/2026-10-20-public-release.md)中。v0.1.1 增加内置照片；v0.2.0 移植私人同源实现中已验证的开机自动进入。公开签名 v0.2.0 APK 未重新进行完整重启测试，具体范围见[开机说明](BOOT-START.md)。
 
 小爱语音、实际手机投屏播放、直播播放、HDMI 音频、游戏延迟和长期待机尚未完成全流程验证。“保留系统组件”不等于这些功能全部经过测试。
 
@@ -126,8 +126,8 @@
 
 ### 方法一：使用电视支持的本地安装方式
 
-1. 打开 [v0.1.1 发布页](https://github.com/op7418/guizang-tv/releases/tag/v0.1.1)。
-2. 在 Assets 中下载 **`guizang-tv-v0.1.1.apk`**。`Source code` 是源码压缩包，不能直接当作电视应用安装。
+1. 打开 [v0.2.0 发布页](https://github.com/op7418/guizang-tv/releases/tag/v0.2.0)。
+2. 在 Assets 中下载 **`guizang-tv-v0.2.0.apk`**。`Source code` 是源码压缩包，不能直接当作电视应用安装。
 3. 按电视固件支持的方式，通过 U 盘或本地文件传输把 APK 送到电视。
 4. 打开 APK，按系统提示允许对应安装来源并完成安装。不同固件对文件管理器及第三方安装的限制不同。
 5. 回到小米原桌面的应用列表，打开 **“归藏电视”**。
@@ -143,7 +143,7 @@
 ```sh
 adb connect TV_IP:PORT
 adb devices
-adb -s TV_IP:PORT install -r "/path/to/guizang-tv-v0.1.1.apk"
+adb -s TV_IP:PORT install -r "/path/to/guizang-tv-v0.2.0.apk"
 ```
 
 首次连接时在电视上确认电脑的调试授权。设备列表状态应为 `device`；若是 `unauthorized`，先处理电视上的授权提示。安装命令输出 `Success` 后，再到电视的应用列表打开应用。
@@ -156,7 +156,7 @@ ADB 只用于安装或调试。完成后可以断开连接、关闭电视调试�
 
 遇到签名冲突时，先确认安装包来源；不要把卸载重装当成保留设置的升级方式。开发者可以为自用版本设置独立 `applicationId`，或持续使用自己的同一套签名。
 
-不再需要时，可在系统应用管理中卸载“归藏电视”。此前的私人“简洁桌面”及上游应用使用不同包名，不会被公开版覆盖，其设置也不会自动迁移。
+未配置开机自动进入时，不再需要可在系统应用管理中卸载“归藏电视”。已经配置的用户先按[关闭与恢复说明](BOOT-START.md)处理系统目标与缓存，避免直接降级到没有启动判断入口的旧版。此前的私人“简洁桌面”及上游应用使用不同包名，不会被公开版覆盖，其设置也不会自动迁移。
 
 ## 7. 日常怎么操作？
 
@@ -173,7 +173,7 @@ ADB 只用于安装或调试。完成后可以断开连接、关闭电视调试�
 | 右下角 | 壁纸设置 | 选择图片、模式与轮播间隔 |
 | 右下角 | 全部应用 | 查看并打开可启动的已安装应用 |
 | 右下角 | 其他信号源 | 打开适配机型的原生信号源面板 |
-| 右下角 | 设置 | 打开电视系统设置 |
+| 右下角 | 设置 | 选择电视系统设置或开机自动进入选项 |
 
 未安装对应 App 时会显示提示，不会自动下载安装。手机投屏需要继续按照小米投屏自身的说明完成连接；直播可沿用原桌面、相应应用或原生信号源入口。
 
@@ -188,7 +188,7 @@ ADB 只用于安装或调试。完成后可以断开连接、关闭电视调试�
 | 返回 | 关闭面板；从操作区回列表；适配机型上从主列表回原桌面 |
 | Home | 由系统原有设置处理，本应用不拦截 |
 
-已测试的 HyperOS 固件会忽略第三方默认桌面选择。因此当前使用方式是从应用列表打开“归藏电视”，不能保证按 Home 或开机就进入它。
+已测试的 HyperOS 固件会忽略第三方默认桌面选择。普通使用方式仍是从应用列表打开“归藏电视”。希望开机自动进入的用户，可按[实验功能说明](BOOT-START.md)完成配置；Home 键仍按原系统设置工作。
 
 ### 固定一张壁纸
 
@@ -205,6 +205,10 @@ ADB 只用于安装或调试。完成后可以断开连接、关闭电视调试�
 3. 按返回回到首页，等待完整间隔后切换下一张。
 
 默认每 5 分钟顺序轮播，最后一张之后回到第一张。离开首页后不继续后台换图；在设置面板中等待也不会触发轮播。
+
+### 开机自动进入
+
+在已适配机型上，先按[完整教程](BOOT-START.md)通过 ADB 配置系统启动目标，再到“设置 → 开机自动进入”开启开关。默认关闭；每次完整开机只尝试一次，不需要悬浮窗权限或无障碍服务。
 
 ## 8. 如何按自己的需求修改？
 
@@ -279,6 +283,7 @@ Windows 环境需将虚拟环境的可执行文件路径改为 `.venv\Scripts\` 
 | [XiaomiControls.java](../app/src/main/java/io/github/op7418/guizangtv/XiaomiControls.java) | 小米机型与系统入口适配 |
 | [FrameWallpapers.java](../app/src/main/java/io/github/op7418/guizangtv/FrameWallpapers.java) | 壁纸加载、设置面板、切换与偏好保存 |
 | [WallpaperCycle.java](../app/src/main/java/io/github/op7418/guizangtv/WallpaperCycle.java) | 轮播间隔与选中项边界 |
+| [BootStart.java](../app/src/main/java/io/github/op7418/guizangtv/BootStart.java) / [BootGateActivity.java](../app/src/main/java/io/github/op7418/guizangtv/BootGateActivity.java) | 开机选项、状态与一次性启动入口 |
 | [prepare_wallpapers.py](../scripts/prepare_wallpapers.py) | 本地壁纸打包工具 |
 
 ## 9. 常见问题

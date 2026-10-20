@@ -101,10 +101,10 @@ public final class FrameHomeActivity extends Activity {
         addControl(actions, "其他信号源", () -> {
             if (!XiaomiControls.showInputs(this)) message("暂时无法打开信号源");
         });
-        addControl(actions, "设置", () -> {
+        addControl(actions, "设置", () -> BootStart.settings(this, () -> {
             Intent intent = XiaomiControls.settings(this, Settings.ACTION_SETTINGS);
             launch(intent, "暂时无法打开设置");
-        });
+        }));
         for (int i = 0; i < rows.size(); i++) {
             TextView row = rows.get(i);
             row.setNextFocusUpId(rows.get(Math.max(0, i - 1)).getId());
@@ -225,8 +225,14 @@ public final class FrameHomeActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        BootStart.confirm(this);
         if (clock != null) { handler.removeCallbacks(tick); tick.run(); }
         if (wallpapers != null) wallpapers.resume();
+    }
+
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
     }
 
     @Override protected void onPause() {
@@ -251,6 +257,7 @@ public final class FrameHomeActivity extends Activity {
     @Override public void dump(String prefix, java.io.FileDescriptor fd, java.io.PrintWriter writer, String[] args) {
         super.dump(prefix, fd, writer, args);
         if (wallpapers != null) wallpapers.dump(writer);
+        BootStart.dump(this, writer);
     }
 
     private TextView text(String value, float size) {

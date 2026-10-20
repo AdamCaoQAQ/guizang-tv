@@ -4,7 +4,7 @@
 
 ![归藏电视界面示意](docs/preview.svg)
 
-**[下载 v0.1.1 APK](https://github.com/op7418/guizang-tv/releases/latest)** · [兼容性与验证](docs/COMPATIBILITY.md) · [代码 MIT 许可](LICENSE)
+**[下载 v0.2.0 APK](https://github.com/op7418/guizang-tv/releases/latest)** · [兼容性与验证](docs/COMPATIBILITY.md) · [代码 MIT 许可](LICENSE)
 
 完整说明见 **[项目介绍与使用指南](docs/PROJECT-GUIDE.zh-CN.md)**：与 cleanYourTV、CleanFrame 的区别，实际改造与优势，安装、遥控器操作、壁纸设置和源码定制。
 
@@ -19,6 +19,7 @@
 - 淡入淡出切换壁纸，离开桌面后暂停计时，返回后重新计时。
 - 遥控器方向键操作，记住上次选中的入口和壁纸偏好。
 - 不需要账号、网络权限或无障碍服务；不下载或预装视频 App。
+- v0.2.0 新增实验性开机自动进入：默认关闭，适配机型需先完成一次 ADB 配置，详见 [启用与恢复说明](docs/BOOT-START.md)。
 
 公开版自带五张经过来源核对的 Unsplash 照片：雾中雪岭、雨林山路、热带绿叶、山间彩虹、流光花影。图片适用 [Unsplash License](https://unsplash.com/license)，代码适用 MIT；[完整来源与署名](docs/WALLPAPERS.md)随源码和 APK 保存。其余版权未确认的照片未纳入。也可以用自己的图片构建。
 
@@ -28,7 +29,7 @@
 
 ```sh
 adb connect <电视IP>:5555
-adb install -r guizang-tv-v0.1.1.apk
+adb install -r guizang-tv-v0.2.0.apk
 ```
 
 端口和调试方式取决于电视固件。首次连接请在电视上确认调试授权；使用结束后可以关闭调试。
@@ -44,9 +45,9 @@ adb install -r guizang-tv-v0.1.1.apk
 | 返回 | 关闭面板；从操作区回到主列表；适配机型上从主列表回小米原桌面 |
 | Home | 按系统原有设置工作，应用不拦截按键 |
 
-**建议先作为普通应用试用。** 已测试的 HyperOS 固件会忽略第三方默认桌面选择，因此本项目不承诺替换开机桌面或 Home 键。无需禁用原桌面，小爱同学、手机投屏、直播及 HDMI 系统组件均保留。真实语音、投屏、直播播放仍需自行验证。
+**建议先作为普通应用试用。** 已测试的 HyperOS 固件会忽略第三方默认桌面选择，因此本项目不接管 Home 键。v0.2.0 可在已适配机型上配置开机自动进入，需开启应用内开关并设置系统目标；这与默认桌面选择是两回事。无需禁用原桌面，小爱同学、手机投屏、直播及 HDMI 系统组件均保留。真实语音、投屏、直播播放仍需自行验证。
 
-卸载「归藏电视」即可结束试用。公开版包名为 `io.github.op7418.guizangtv`，不会覆盖上游 cleanYourTV，也不会覆盖原有私人试用版，设置不会自动迁移。
+未配置开机自动进入时，卸载「归藏电视」即可结束试用。已经配置的用户先按 [关闭与恢复步骤](docs/BOOT-START.md) 停用并核对系统目标，避免缓存调用或降级旧版后行为变化。公开版包名为 `io.github.op7418.guizangtv`，不会覆盖上游 cleanYourTV，也不会覆盖原有私人试用版，设置不会自动迁移。
 
 ## 从源码构建
 
