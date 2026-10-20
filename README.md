@@ -6,6 +6,8 @@
 
 **[下载 v0.1.1 APK](https://github.com/op7418/guizang-tv/releases/latest)** · [兼容性与验证](docs/COMPATIBILITY.md) · [代码 MIT 许可](LICENSE)
 
+完整说明见 **[项目介绍与使用指南](docs/PROJECT-GUIDE.zh-CN.md)**：与 cleanYourTV、CleanFrame 的区别，实际改造与优势，安装、遥控器操作、壁纸设置和源码定制。
+
 这是从个人电视上的定制版本整理出的公开版。目前重点适配小米电视 **MiTV-MTSU0**，不是面向所有 Android TV 的通用桌面替换工具。上图为布局示意；实际内置照片见 [壁纸预览与署名](docs/WALLPAPERS.md)。
 
 ## 能做什么
