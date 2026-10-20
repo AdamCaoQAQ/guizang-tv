@@ -29,3 +29,9 @@
 - 自动构建工作流随源码发布；其实际运行结果以 GitHub Actions 为准。
 
 其他机型、真实语音和投屏播放等验证边界见 [兼容性说明](../COMPATIBILITY.md)。
+
+## CI 环境修正
+
+首次 GitHub Actions 在 SDK 准备阶段失败：setup-android 的默认包列表包含已不可用的 `tools`。
+改为明确只准备 `platform-tools`，编译所需的 Platform 34 / Build Tools 34.0.0 仍由后续步骤安装。
+此修正只影响 CI，不改变已验证并发布的 APK。
