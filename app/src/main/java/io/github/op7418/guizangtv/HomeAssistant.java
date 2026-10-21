@@ -49,7 +49,7 @@ final class HomeAssistant {
         View shade=new View(a);shade.setBackground(new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{0xD5080C12,0xB0080C12}));stage.addView(shade,new FrameLayout.LayoutParams(-1,-1));
         dialog.setContentView(stage);dialog.show();dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.getWindow().setLayout(-1,-1);
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         dialog.getWindow().getDecorView().setSystemUiVisibility(5894);
         if(prefs.contains("connection"))chat();else pair();a.updateRotation();
     }
@@ -88,13 +88,17 @@ final class HomeAssistant {
         scroll.addView(transcript,new ScrollView.LayoutParams(-1,-2));body.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
         LinearLayout compose=new LinearLayout(a);compose.setGravity(Gravity.CENTER_VERTICAL);
         LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,a.dp(66));cp.topMargin=a.dp(14);body.addView(compose,cp);
-        input=editor("输入问题…");input.setSingleLine(true);input.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_SEND);
+        input=editor("输入问题…");input.setSingleLine(true);input.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
         compose.addView(input,new LinearLayout.LayoutParams(0,a.dp(54),1));
         send=button(compose,"发送",()->{if(busy){request("/cancel",new JSONObject());return;}submit();});
-        input.setOnEditorActionListener((v,action,event)->{if(action==android.view.inputmethod.EditorInfo.IME_ACTION_SEND){submit();return true;}return false;});
+        // An IME may emit SEND even when DONE was requested. Only the explicit button submits.
+        input.setOnEditorActionListener((v,action,event)->{
+            hideKeyboard(input);send.requestFocus();return true;
+        });
         actions=new LinearLayout(a);actions.setGravity(Gravity.CENTER_VERTICAL);body.addView(actions,new LinearLayout.LayoutParams(-1,a.dp(38)));
-        voice=button(actions,"遥控器语音 · 实验",()->request("/voice",new JSONObject()));voice.setVisibility(View.GONE);
-        TextView foot=label("文字对话试用 · 尚未连接日程、米家或电脑任务",12);foot.setTextColor(0x88FFFFFF);actions.addView(foot);
+        button(actions,"键盘 / 语音",this::showKeyboard);
+        voice=button(actions,"本机语音 · 实验",()->request("/voice",new JSONObject()));voice.setVisibility(View.GONE);
+        TextView foot=label("先打开键盘，再按语音键 · 需输入法支持 · 返回后确认发送",12);foot.setTextColor(0x88FFFFFF);actions.addView(foot);
         input.requestFocus();request("/state",null);
     }
     private void submit(){
@@ -102,6 +106,14 @@ final class HomeAssistant {
         String text=input.getText().toString().trim();if(text.isEmpty())return;
         JSONObject data=new JSONObject();try{data.put("text",text);}catch(JSONException ignored){}
         hideKeyboard(input);request("/message",data);
+    }
+    private void showKeyboard(){
+        input.requestFocus();
+        input.post(()->{
+            if(showing()&&!pairing&&active)
+                ((InputMethodManager)a.getSystemService(android.content.Context.INPUT_METHOD_SERVICE))
+                    .showSoftInput(input,InputMethodManager.SHOW_IMPLICIT);
+        });
     }
     private void hideKeyboard(View view){((InputMethodManager)a.getSystemService(android.content.Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(view.getWindowToken(),0);}
     private void request(String path,JSONObject body){
