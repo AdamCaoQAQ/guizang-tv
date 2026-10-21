@@ -30,10 +30,16 @@ final class HomeSettings {
     private ImageView backdrop;
     private View content;
     private int backdropRequest;
+    private int cityRequest;
+    private boolean searching;
+    private EditText cityInput;
+    private String cityQuery="",cityError="";
+    private List<HomeWeather.City> cityResults=new ArrayList<>();
     HomeSettings(FrameHomeActivity activity){a=activity;}
     boolean showing(){return dialog!=null&&dialog.isShowing();}
     String page(){return showing()?page:"closed";}
     void time(String time){if(preview!=null)preview.clock.setText(time);}
+    void weatherChanged(){if(preview!=null)preview.weather(a.weather.current());if(showing()&&page.equals("weather")&&status!=null)status.setText(a.weather.city()+" · "+a.weather.status());}
     void show(){
         if(showing())return;
         page="overview";undo.clear();
@@ -48,16 +54,16 @@ final class HomeSettings {
         View shade=new View(a);shade.setBackground(new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{0xC2080C0F,0x7D080C0F}));stage.addView(shade,new FrameLayout.LayoutParams(-1,-1));
         dialog.setContentView(stage);render();a.updateRotation();
     }
-    void close(){if(dialog!=null)dialog.dismiss();}
+    void close(){cityRequest++;searching=false;if(dialog!=null)dialog.dismiss();}
     private void back(){
         a.wallpapers.cancelPreview();a.wallpapers.cancelSelection();
         if(page.equals("overview")){close();return;}
-        go(page.equals("wallpaper")||page.equals("rotation")?"background":page.startsWith("item:")||page.equals("add")?"home":"overview");
+        go(page.equals("city")?"weather":page.equals("wallpaper")||page.equals("rotation")?"background":page.startsWith("item:")||page.equals("add")?"home":"overview");
     }
-    private void go(String next){a.wallpapers.cancelPreview();a.wallpapers.cancelSelection();page=next;render();}
+    private void go(String next){cityRequest++;searching=false;a.wallpapers.cancelPreview();a.wallpapers.cancelSelection();page=next;render();}
     private String title(){
         switch(page){case "overview":return "设置";case "background":return "背景";case "wallpaper":return "壁纸";case "rotation":return "轮播";
-            case "layout":return "布局";case "type":return "字体";case "focus":return "选中样式";case "home":return "首页内容";case "add":return "首页内容 / 添加";case "tv":return "电视与启动";
+            case "weather":return "时间与天气";case "city":return "选择城市";case "layout":return "布局";case "type":return "字体";case "focus":return "选中样式";case "home":return "首页内容";case "add":return "首页内容 / 添加";case "tv":return "电视与启动";
             default:return "首页内容 / "+a.items.name(page.substring(5));}
     }
     private void render(){
@@ -94,7 +100,7 @@ final class HomeSettings {
             case "overview":
                 entry("背景", "壁纸、轮播与纯色",()->go("background"));entry("布局","列表、Dock、图标与文字",()->go("layout"));
                 entry("字体","字形与字号",()->go("type"));entry("选中样式","文字高亮与毛玻璃",()->go("focus"));
-                entry("首页内容","添加、排序、隐藏",()->go("home"));entry("电视与启动","自动进入与小米系统",()->go("tv"));break;
+                entry("时间与天气","城市、温度与天气显示",()->go("weather"));entry("首页内容","添加、排序、隐藏",()->go("home"));entry("电视与启动","自动进入与小米系统",()->go("tv"));break;
             case "background":
                 row("背景","background",new String[]{"照片","浅色","深色"});
                 if(a.appearance.get("background")==0){entry("壁纸",a.wallpapers.name(a.wallpapers.selected()),()->go("wallpaper"));entry("轮播",a.wallpapers.rotating()?"每 "+a.wallpapers.minutes()+" 分钟":"固定壁纸",()->go("rotation"));}
@@ -121,6 +127,21 @@ final class HomeSettings {
             case "add":
                 a.items.discover();for(String id:a.items.names.keySet())if(!a.items.order.contains(id))entry(a.items.name(id),"添加到首页末尾",()->{
                     if(a.items.order.size()>=9){a.message("首页最多保留 9 个入口");return;}List<String> next=new ArrayList<>(a.items.order);next.add(id);if(save(next))go("home");});break;
+            case "weather":
+                option("关闭天气",!a.weather.enabled(),()->{if(a.weather.enabled(false)){a.refreshHome();render();}else failed();});
+                option("显示天气",a.weather.enabled(),()->{if(a.weather.enabled(true)){a.refreshHome();render();}else failed();});
+                option("自动识别城市",a.weather.automatic(),()->{if(a.weather.autoCity()){a.refreshHome();render();}else failed();});
+                entry("手动选择城市",a.weather.city(),()->go("city"));
+                note("天气显示在时间右侧，每 30 分钟更新。自动城市根据网络出口识别；使用代理时可能不准确，可手动纠正。");
+                note("数据：Open-Meteo · CC BY 4.0\n城市：IPWhois · 不申请精确定位");break;
+            case "city":
+                cityInput=new EditText(a);cityInput.setText(cityQuery);cityInput.setTextColor(0xF2FFFFFF);cityInput.setHintTextColor(0x99FFFFFF);cityInput.setTextSize(18);
+                cityInput.setHint("城市名称或拼音");cityInput.setSingleLine(true);cityInput.setPadding(a.dp(14),0,a.dp(14),0);cityInput.setBackground(WallpaperMaterial.rounded(0x26FFFFFF,a.dp(10)));
+                cityInput.setOnFocusChangeListener((v,focus)->v.setBackground(WallpaperMaterial.rounded(focus?0x45FFFFFF:0x26FFFFFF,a.dp(10))));
+                options.addView(cityInput,new LinearLayout.LayoutParams(-1,a.dp(44)));
+                entry("搜索城市",searching?"正在搜索…":"确认后查看匹配城市",this::searchCities);
+                for(HomeWeather.City city:cityResults)entry(city.name,city.region,()->{if(a.weather.select(city)){a.refreshHome();go("weather");}else failed();});
+                if(!cityError.isEmpty())note(cityError);else note("确认省份和国家后选择。返回不会更改当前城市。");break;
             case "tv":
                 entry("开机自动进入",BootStart.enabled(a)?"已开启":"已关闭",()->BootStart.show(a));entry("电视系统设置","网络、声音、画面等",a::systemSettings);entry("小米原桌面","打开原来的电视首页",a::stockHome);break;
             default:
@@ -130,8 +151,14 @@ final class HomeSettings {
                 else note("至少保留一个首页入口。");break;
         }
         if(content!=null)stage.removeView(content);content=panel;stage.addView(panel,new FrameLayout.LayoutParams(-1,-1));
-        refreshPreview();background(a.wallpaperDrawable());rendering=false;
+        refreshPreview();background(a.wallpaperDrawable());rendering=false;weatherChanged();
         if(!choices.isEmpty())choices.get(Math.min(remembered.getOrDefault(page,0),choices.size()-1)).requestFocus();
+    }
+    private void searchCities(){
+        if(searching)return;cityQuery=cityInput.getText().toString().trim();
+        ((android.view.inputmethod.InputMethodManager)a.getSystemService(android.content.Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(cityInput.getWindowToken(),0);
+        searching=true;cityError="";cityResults.clear();int request=++cityRequest;render();
+        a.weather.search(cityQuery,(cities,error)->{if(request!=cityRequest||!showing()||!page.equals("city"))return;searching=false;cityResults=cities;cityError=error;render();});
     }
     private void gallery(){
         for(int i=0;i<a.wallpapers.count();i++){

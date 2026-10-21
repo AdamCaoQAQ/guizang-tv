@@ -15,6 +15,7 @@ final class HomeSurface extends FrameLayout {
     final List<View> apps = new ArrayList<>(), controls = new ArrayList<>();
     final ImageView previewPhoto;
     final TextView clock;
+    private final TextView weather;
     private final HomeAppearance style;
     private final boolean preview;
     private final Actions actions;
@@ -76,8 +77,12 @@ final class HomeSurface extends FrameLayout {
                 if(focus){if(dockShelf!=null)dockShelf.reveal(tile,true);this.selected=index;actions.selected(index);for(int cIndex=0;cIndex<controls.size();cIndex++){View control=controls.get(cIndex);if(dock){control.setNextFocusDownId(tile.getId());if(cIndex==0)control.setNextFocusLeftId(tile.getId());}else control.setNextFocusLeftId(tile.getId());}}
             });
         }
-        clock=text("",26);clock.setTypeface(style.typeface());clock.setGravity(Gravity.END);
-        LayoutParams cp=new LayoutParams(dp(160),dp(45),Gravity.TOP|(dock?Gravity.START:Gravity.END));cp.topMargin=dp(45);cp.rightMargin=dp(64);if(dock){cp.leftMargin=dp(60);clock.setGravity(Gravity.START);}addView(clock,cp);
+        LinearLayout timeRow=new LinearLayout(c);timeRow.setGravity(Gravity.CENTER_VERTICAL);
+        clock=text("",26);clock.setGravity(Gravity.CENTER_VERTICAL);clock.setTypeface(style.typeface());timeRow.addView(clock,new LinearLayout.LayoutParams(-2,-1));
+        weather=text("",16);weather.setTypeface(style.typeface());weather.setAlpha(.82f);weather.setGravity(Gravity.CENTER_VERTICAL);
+        weather.setSingleLine(true);weather.setMaxWidth(dp(215));weather.setEllipsize(TextUtils.TruncateAt.END);weather.setVisibility(GONE);
+        LinearLayout.LayoutParams wp=new LinearLayout.LayoutParams(-2,-1);wp.leftMargin=dp(20);timeRow.addView(weather,wp);
+        LayoutParams cp=new LayoutParams(-2,dp(45),Gravity.TOP|(dock?Gravity.START:Gravity.END));cp.topMargin=dp(45);cp.rightMargin=dp(64);if(dock)cp.leftMargin=dp(60);addView(timeRow,cp);
         LinearLayout side=new LinearLayout(c);side.setOrientation(dock?LinearLayout.HORIZONTAL:LinearLayout.VERTICAL);side.setGravity(Gravity.END);
         LayoutParams sp=new LayoutParams(dock?-2:dp(180),-2,(dock?Gravity.TOP:Gravity.BOTTOM)|Gravity.END);sp.rightMargin=dp(64);sp.bottomMargin=dp(46);if(dock)sp.topMargin=dp(45);addView(side,sp);
         String[] names={"全部应用","其他信号源","设置"};String[] ids={"apps","inputs","settings"};
@@ -109,6 +114,13 @@ final class HomeSurface extends FrameLayout {
         if(preview)setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
         if(dockShelf!=null)dockShelf.reveal(apps.get(this.selected),false);
         wallpaper(wallpaper);
+    }
+    void weather(HomeWeather.Reading reading){
+        weather.setVisibility(reading==null?GONE:VISIBLE);if(reading==null)return;
+        weather.setText(Math.round(reading.temperature)+"°  "+reading.city);
+        Drawable icon=new WeatherIcon(reading.code,reading.day,style.ink());icon.setBounds(0,0,dp(24),dp(24));
+        weather.setCompoundDrawables(icon,null,null,null);weather.setCompoundDrawablePadding(dp(7));
+        weather.setContentDescription(reading.city+"，"+WeatherPolicy.description(reading.code)+"，"+Math.round(reading.temperature)+"摄氏度");
     }
     void focusApp(){apps.get(selected).requestFocus();}
     private void paint(View v,TextView label,boolean focused,boolean iconsOnly){

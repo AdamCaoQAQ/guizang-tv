@@ -17,6 +17,7 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
     HomeItems items;
     FrameWallpapers wallpapers;
     HomeSettings settings;
+    HomeWeather weather;
     HomeSurface surface;
     private FrameLayout root;
     private ImageView photo, transition;
@@ -38,6 +39,7 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
         photo.setScaleType(ImageView.ScaleType.CENTER_CROP);transition.setScaleType(ImageView.ScaleType.CENTER_CROP);transition.setAlpha(0);
         root.addView(photo,new FrameLayout.LayoutParams(-1,-1));root.addView(transition,new FrameLayout.LayoutParams(-1,-1));
         wallpapers=new FrameWallpapers(this,photo,transition);
+        weather=new HomeWeather(this,this::weatherChanged);
         settings=new HomeSettings(this);
         wallpapers.changed=()->{if(surface!=null)surface.wallpaper(wallpaperDrawable());};
         setContentView(root);refreshHome();surface.focusApp();
@@ -53,11 +55,12 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
         root.addView(surface,new FrameLayout.LayoutParams(-1,-1));
         surface.apps.get(restore).requestFocus();
         selected=restore;
-        handler.removeCallbacks(tick);tick.run();updateRotation();
+        handler.removeCallbacks(tick);tick.run();weatherChanged();updateRotation();
     }
-    HomeSurface preview(){return new HomeSurface(this,appearance,items,wallpaperDrawable(),selected,true,this);}
+    HomeSurface preview(){HomeSurface view=new HomeSurface(this,appearance,items,wallpaperDrawable(),selected,true,this);view.weather(weather.current());return view;}
+    void weatherChanged(){if(surface!=null)surface.weather(weather.current());if(settings!=null)settings.weatherChanged();}
     Drawable wallpaperDrawable(){return photo.getDrawable();}
-    void updateRotation(){if(resumed&&appearance.get("background")==0&&!settings.showing()&&(library==null||!library.isShowing()))wallpapers.resume();else wallpapers.pause();}
+    void updateRotation(){if(weather!=null)weather.active(resumed&&!settings.showing()&&(library==null||!library.isShowing()));if(resumed&&appearance.get("background")==0&&!settings.showing()&&(library==null||!library.isShowing()))wallpapers.resume();else wallpapers.pause();}
     @Override public void selected(int index){selected=index;getSharedPreferences("frame-home",0).edit().putInt("selected",index).apply();}
     @Override public void open(String id){
         if(id.startsWith("hdmi:")){if(!XiaomiControls.openHdmi(this,Integer.parseInt(id.substring(5))))message("暂时无法切换信号源");return;}
@@ -83,11 +86,11 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
     }
     @Override protected void onResume(){super.onResume();resumed=true;BootStart.confirm(this);handler.removeCallbacks(tick);tick.run();updateRotation();}
     @Override protected void onNewIntent(Intent i){super.onNewIntent(i);setIntent(i);}
-    @Override protected void onPause(){resumed=false;handler.removeCallbacks(tick);wallpapers.pause();if(library!=null)library.dismiss();super.onPause();}
-    @Override protected void onDestroy(){settings.close();wallpapers.destroy();handler.removeCallbacksAndMessages(null);super.onDestroy();}
+    @Override protected void onPause(){resumed=false;weather.active(false);handler.removeCallbacks(tick);wallpapers.pause();if(library!=null)library.dismiss();super.onPause();}
+    @Override protected void onDestroy(){settings.close();weather.destroy();wallpapers.destroy();handler.removeCallbacksAndMessages(null);super.onDestroy();}
     @Override public void onBackPressed(){if(surface.controls.contains(getCurrentFocus()))surface.focusApp();else if(XiaomiControls.enabled())stockHome();else super.onBackPressed();}
     @Override public void dump(String prefix,java.io.FileDescriptor fd,java.io.PrintWriter out,String[] args){
-        super.dump(prefix,fd,out,args);wallpapers.dump(out);BootStart.dump(this,out);
+        super.dump(prefix,fd,out,args);wallpapers.dump(out);BootStart.dump(this,out);weather.dump(out);
         out.println("HomeAppearance: "+appearance.prefs.getAll()+" items="+items.order+" settings="+settings.page());
     }
     void message(String value){Toast.makeText(this,value,Toast.LENGTH_LONG).show();}

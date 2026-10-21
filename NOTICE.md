@@ -19,3 +19,5 @@
 v0.1.1 起，内置五张经原页面核对的 Unsplash 照片，适用 **Unsplash License**，不适用代码的 MIT 许可。逐张署名、原始链接和处理方式见 [壁纸说明](docs/WALLPAPERS.md)，许可通知也随 APK 打包。
 
 用户自行加入的照片不因放入本工程而自动获得 MIT 许可。其他未授权公开的私人试用素材、实机诊断数据、签名密钥均不在公开源代码或官方 APK 中。
+
+main 的可选天气使用 [Open-Meteo](https://open-meteo.com/) 数据（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)），温度取整、天气码转换为中文及自绘矢量图标；城市搜索由 Open-Meteo / GeoNames 提供，IP 城市由 [IPWhois](https://ipwhois.io/) 提供。托管 API 的使用条款独立于本项目代码许可，详见[天气说明](docs/WEATHER.md)。
