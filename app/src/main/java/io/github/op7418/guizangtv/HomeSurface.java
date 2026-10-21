@@ -85,7 +85,7 @@ final class HomeSurface extends FrameLayout {
         LayoutParams cp=new LayoutParams(-2,dp(45),Gravity.TOP|(dock?Gravity.START:Gravity.END));cp.topMargin=dp(45);cp.rightMargin=dp(64);if(dock)cp.leftMargin=dp(60);addView(timeRow,cp);
         LinearLayout side=new LinearLayout(c);side.setOrientation(dock?LinearLayout.HORIZONTAL:LinearLayout.VERTICAL);side.setGravity(Gravity.END);
         LayoutParams sp=new LayoutParams(dock?-2:dp(180),-2,(dock?Gravity.TOP:Gravity.BOTTOM)|Gravity.END);sp.rightMargin=dp(64);sp.bottomMargin=dp(46);if(dock)sp.topMargin=dp(45);addView(side,sp);
-        String[] names={"全部应用","其他信号源","设置"};String[] ids={"apps","inputs","settings"};
+        String[] names={"全部应用","其他信号源","设置","Codex"};String[] ids={"apps","inputs","settings","assistant"};
         for(int i=0;i<names.length;i++){
             final int index=i;LinearLayout line=new LinearLayout(c);line.setGravity(Gravity.END|Gravity.CENTER_VERTICAL);
             TextView label=text(names[i],16);label.setTypeface(style.typeface());int mode=style.get("controls");

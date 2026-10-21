@@ -23,3 +23,7 @@ app/src/main/assets/wallpapers/*
 !app/src/main/assets/wallpapers/UNSPLASH-NOTICE.txt
 # Only the five explicitly selected, source-verified photos are public assets.
 !app/src/main/assets/wallpapers/bundled/
+
+# Companion pairing material must stay outside source control.
+tv-pairing.txt
+companion-state/

@@ -58,5 +58,10 @@
     "name": "bilibili",
     "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/c71c69e3a27e4436936b831c72643e6513b9f49b/icons/bilibili.svg",
     "license": "CC0-1.0"
+  },
+  {
+    "name": "chat-circle-dots",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/chat-circle-dots-fill.svg",
+    "license": "MIT"
   }
 ]

@@ -1,0 +1,61 @@
+# Codex 电视对话试用
+
+这是 main 分支的实验功能，尚未包含在 v0.3.0 正式安装包。桌面的「Codex」入口连接同一局域网内电脑上的 Codex CLI；电脑保持开机、联网且连接服务运行时，电视可以输入问题、查看流式回答、停止回答和开始新对话。
+
+当前只做文字对话，没有接入个人文件、日程、米家、其他 Codex 会话，也不能控制电脑或家电。接入这些能力需要单独设计权限与交互。它使用电脑已经登录的 Codex 账号和相应额度，不代表免费、不限量，也不是在电视本地运行模型。
+
+## 电脑端
+
+需要 Python 3.11 或更新版本、已登录的 Codex CLI，以及生成证书用的 OpenSSL。电脑需要能正常访问 Codex。先运行 `codex login status` 确认登录；未登录时运行 `codex login`。
+
+从项目根目录执行，替换 `192.168.1.20` 为电脑的实际局域网 IPv4 地址：
+
+```sh
+python3 companion/server.py --home "$HOME/.guizang-tv" --init --host 192.168.1.20
+python3 companion/server.py --home "$HOME/.guizang-tv"
+```
+
+第一次生成独立 HTTPS 证书、随机配对令牌，以及 `$HOME/.guizang-tv/tv-pairing.txt`。这个文件相当于电视连接凭证，不要上传、截图分享或放进公开仓库。目录必须放在源码仓库之外。初始化不会覆盖已有配置。
+
+服务默认使用 8765 端口，只绑定初始化时填写的 IP；家庭路由器不需要端口转发。电脑换了 IP、证书过期或需要撤销旧配对时，停止旧服务，换一个私有目录重新初始化并在电视重新配对。试用版没有自动开机常驻设置，关闭终端或电脑睡眠可能导致断开。Ctrl+C 停止服务。
+
+## 电视端
+
+1. 打开桌面上的「Codex」。首次进入会显示连接页。
+2. 用可信的键盘或调试工具，将 `tv-pairing.txt` 的完整内容填入配对框，选择「连接」。当前版本是开发者试用，尚未提供扫码配对。
+3. 看到「已连接电脑 · Codex」后，输入问题并选择「发送」。电视使用现有系统输入法，也可以连接蓝牙键盘。
+4. 回答中可以选择「停止」，上下移动到回答区域后可滚动阅读。「新对话」清空面板并为下一次提问创建新上下文。
+5. 返回或关闭面板即可回到桌面。关闭面板停止电视轮询，但已经发送的回答可在电脑端继续完成，再打开可查看结果。
+
+配对设置只存在电视应用私有偏好中；不在 APK 内置地址、令牌或 OpenAI 登录信息。更新安装保留配对，卸载应用会丢失。连接错误不会自动换用未验证的服务。
+
+## 遥控器语音能否直接用？
+
+需要分开验证按键与音频。开源项目 [Key Mapper](https://github.com/keymapperorg/KeyMapper) 和 [TV Key Mapper](https://github.com/kostyay/xiaomi-tv-apps-button-bridge) 提供按键或 Intent 映射，但按键可映射不等于遥控器麦克风可以被第三方使用。
+
+[MiRemote Mapper](https://github.com/81199000/mi-remote-mapper) 和 [mi_remote_control](https://github.com/godarrenw/mi_remote_control) 演示了将兼容遥控器连接到 Mac、通过 ATVV 通道使用麦克风。它们不是现成的国行小米电视语音驱动。把主遥控器改配对到电脑，也会影响原本控制电视的使用方式。
+
+本次国行 HyperOS 实机查询未找到 Android 标准 RecognitionService 或 RECOGNIZE_SPEECH Activity。小爱日志确认语音来源是遥控器 RC，说明原生链路正常，但不能因此声称第三方已获得录音能力。
+
+本机另有一个短时实验适配器：点击「遥控器语音 · 实验」后，通过已授权的 ADB 连接读取本次小爱识别完成的文字，填入输入框，用户确认后才发送。它不录制音频、不自动向 Codex 转发所有小爱对话，也没有改绑语音键。小爱仍可能回答或执行原口令，因此只能用普通问句测试，不要把它当作独占语音助手。该适配器依赖本机调试连接和特定固件日志，未作为通用驱动打包发布。
+
+`--voice-command` 是可选的本机实验接口：启动指定本地命令，标准输出作为待确认草稿，最长等待 35 秒。不配置时电视不显示语音按钮。不能把来自网络请求的字符串当作命令配置。
+
+## 连接与数据边界
+
+- Codex App Server 只通过本机 stdio 与连接服务通信；没有把原始 App Server 或其任意 RPC 暴露给电视。
+- 电视固定校验配对证书 SHA-256、有效期及 HTTPS 主机名，再使用独立 Bearer 令牌。禁止明文 HTTP 和重定向，不添加跳过证书校验的开关。
+- 服务只提供状态、发消息、停止、新对话和可选语音实验五类请求；拒绝错误令牌、带浏览器 Origin 的请求、过大请求和并发提问。
+- 试用关闭 shell、个人配置的 MCP、应用连接器、插件和其他执行入口；线程使用只读沙箱，任何服务端工具审批请求均不获准。不继承用户个人集成作为客厅共享能力。
+- 服务不主动写入聊天记录文件，不打印请求内容或凭证。会话使用临时线程，重启连接服务会清空面板上下文；模型服务方仍按其账号及数据政策处理请求。
+- 当前仅面向一台可信电视的本地试用，不是互联网部署服务，也没有多用户会话隔离或手机网页客户端。
+
+实现参考：[Codex App Server 官方文档](https://learn.chatgpt.com/docs/app-server)、[配置示例](https://learn.chatgpt.com/docs/config-file/config-sample)、[Android SpeechRecognizer](https://developer.android.com/reference/android/speech/SpeechRecognizer)。本机验证 CLI 为 0.163.0-alpha.11，后续版本可能需要适配。
+
+## 开发验证
+
+```sh
+python3 -m unittest discover -s companion -v
+```
+
+测试覆盖鉴权、浏览器请求拒绝、输入大小与类型、禁止透传任意 RPC、隔离其他线程事件、中断保留部分回答、旧超时不取消新轮次以及断开时拒绝新请求。Android 构建和既有测试仍通过 Gradle 运行。
