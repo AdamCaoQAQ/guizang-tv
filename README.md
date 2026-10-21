@@ -6,6 +6,8 @@
 
 **[下载 v0.2.0 APK](https://github.com/op7418/guizang-tv/releases/latest)** · [兼容性与验证](docs/COMPATIBILITY.md) · [代码 MIT 许可](LICENSE)
 
+**main 已加入统一设置，尚未发布新的 Release APK。** 壁纸、布局、字体、焦点和首页编辑都在「设置」中；操作见 [新设置指南](docs/SETTINGS.md)。下方下载链接仍为 v0.2.0。
+
 完整说明见 **[项目介绍与使用指南](docs/PROJECT-GUIDE.zh-CN.md)**：与 cleanYourTV、CleanFrame 的区别，实际改造与优势，安装、遥控器操作、壁纸设置和源码定制。
 
 这是从个人电视上的定制版本整理出的公开版。目前重点适配小米电视 **MiTV-MTSU0**，不是面向所有 Android TV 的通用桌面替换工具。上图为布局示意；实际内置照片见 [壁纸预览与署名](docs/WALLPAPERS.md)。
@@ -14,7 +16,9 @@
 
 - 左侧大字列表：PlayStation 5、Apple TV、哔哩哔哩、小米投屏、相册、小米原桌面。
 - 在已适配机型上，PlayStation 5 直达 HDMI 2，Apple TV 直达 HDMI 1。
-- 右下角统一放置：壁纸设置、全部应用、其他信号源、设置。
+- 右下角只保留全部应用、其他信号源、设置；壁纸统一进入「设置 → 背景」。
+- 分组设置带首页预览；支持列表 / Dock、图标 / 文字、系统字体风格、字号和焦点样式。
+- 首页 1–9 项，可添加、隐藏、排序和撤销编辑；默认六项不变。
 - 壁纸支持固定选择、自动轮播，默认每 5 分钟切换；可选 1 / 5 / 15 / 30 分钟。
 - 淡入淡出切换壁纸，离开桌面后暂停计时，返回后重新计时。
 - 遥控器方向键操作，记住上次选中的入口和壁纸偏好。
@@ -38,9 +42,9 @@ adb install -r guizang-tv-v0.2.0.apk
 
 | 遥控器操作 | 行为 |
 | --- | --- |
-| 上 / 下 | 切换当前区域中的项目 |
-| 右 | 从主列表进入右下角操作区 |
-| 左 | 返回主列表上次选中的项目 |
+| 上 / 下 | 列表与操作区切换项目；Dock 向上进入操作区 |
+| 右 | 列表进入操作区；Dock 向右选择应用 |
+| 左 | 操作区返回上次应用；Dock 向左选择应用 |
 | 确认 | 打开选中项目 |
 | 返回 | 关闭面板；从操作区回到主列表；适配机型上从主列表回小米原桌面 |
 | Home | 按系统原有设置工作，应用不拦截按键 |
@@ -96,9 +100,9 @@ gradle :app:assembleDebug
 
 ## 修改入口与适配电视
 
-- 应用名称、包名与 HDMI 入口在 [FrameHomeActivity.java](app/src/main/java/io/github/op7418/guizangtv/FrameHomeActivity.java) 的 `addRow(...)` 中配置，目前没有电视端编辑界面。
+- 首页可在「设置 → 首页内容」编辑。默认名称、包名和顺序位于 [HomeItems.java](app/src/main/java/io/github/op7418/guizangtv/HomeItems.java)，应用启动由 FrameHomeActivity 处理。
 - 小米接口集中在 [XiaomiControls.java](app/src/main/java/io/github/op7418/guizangtv/XiaomiControls.java)。HDMI 参数只在已验证机型上启用，不能仅添加机型名就视为完成适配。
-- 壁纸设置与轮播逻辑在 [FrameWallpapers.java](app/src/main/java/io/github/op7418/guizangtv/FrameWallpapers.java)。
+- 分组设置位于 HomeSettings，首页及预览共用 HomeSurface；壁纸加载与轮播逻辑在 [FrameWallpapers.java](app/src/main/java/io/github/op7418/guizangtv/FrameWallpapers.java)。
 - 当前 PS5 / Apple TV 是入口名称，不代表自动识别到设备。请按实际接线修改端口。
 - 应用未安装时会显示提示；项目没有代装应用、账号登录或内容破解功能。
 
@@ -108,6 +112,6 @@ gradle :app:assembleDebug
 
 本项目起步于 [Gathin23/cleanyourtv](https://github.com/Gathin23/cleanyourtv) 的本地定制，整理时提取了本次实现的原生列表桌面及小米适配。公开版不包含上游的一键清理脚本、旧 Dock 桌面、无障碍按键服务或系统应用禁用流程。
 
-界面方向参考 [nthnclrk/CleanFrame](https://github.com/nthnclrk/CleanFrame)：照片背景、大字纵向列表、克制的焦点高亮。Android 界面使用原生 Java 实现，没有移植 Tizen 运行代码或附带其照片。
+界面方向参考 [nthnclrk/CleanFrame](https://github.com/nthnclrk/CleanFrame)：照片背景、大字纵向列表、克制的焦点高亮，以及分组设置、预览和确认应用的交互。Android 界面使用原生 Java 实现，没有移植 Tizen 运行代码或附带其照片。
 
 代码采用 MIT 许可，保留上游署名。详细来源见 [NOTICE.md](NOTICE.md)。

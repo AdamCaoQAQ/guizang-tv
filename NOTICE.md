@@ -4,10 +4,12 @@
   - https://github.com/Gathin23/cleanyourtv
   - 本地定制基线：`69c93b66a75c70a9e386adff327b6a51c12addc5`
   - 原始版权：Copyright (c) 2026 Gathin，保留于根目录 LICENSE。
-- 设计参考：nthnclrk/CleanFrame，Nathan Clark。
+- 设计与设置交互参考：nthnclrk/CleanFrame，Nathan Clark。
   - https://github.com/nthnclrk/CleanFrame
   - 参考版本：`fa537d1892b71d2de2bf94c24cbff3812e9f70d5`
-  - 本项目没有打包其 Tizen 代码或照片。
+  - 参考其分组、首页预览、焦点与已应用值分离、确认应用和逐层返回的交互。
+  - 本项目没有打包其 Tizen 代码、字体或照片。
+  - 已安装应用图标由 Android 本地读取，不作为素材重新打包。
 - 公开版的默认渐变、矢量图标及布局示意是本项目源码生成内容，采用同一 MIT 许可。
 - 使用 Android 系统字体，不打包 Outfit 字体。
 - Android Gradle Plugin、Gradle 与 JUnit 是构建或测试依赖，各自适用其许可证；不代表被重新许可为 MIT。

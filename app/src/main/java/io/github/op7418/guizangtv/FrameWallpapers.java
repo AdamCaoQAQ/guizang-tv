@@ -43,12 +43,8 @@ final class FrameWallpapers {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private final List<Entry> entries = new ArrayList<>();
-    private final List<TextView> captions = new ArrayList<>();
     private boolean rotating, active, loading, destroyed, hasImage;
     private int current, minutes, generation;
-    private Dialog dialog;
-    private AlertDialog intervalDialog;
-    private TextView autoButton, fixedButton, intervalButton;
     private final Runnable rotate = () -> load(WallpaperCycle.next(current, entries.size()));
 
     FrameWallpapers(Activity activity, ImageView photo, ImageView transition) {
@@ -113,7 +109,8 @@ final class FrameWallpapers {
         }
     }
 
-    private void load(int index) {
+    private void load(int index) { load(index, () -> {}); }
+    private void load(int index, Runnable success) {
         if (destroyed || entries.isEmpty()) return;
         handler.removeCallbacks(rotate);
         final int request = ++generation;
@@ -134,6 +131,11 @@ final class FrameWallpapers {
                     schedule();
                     return;
                 }
+                if (!prefs.edit().putString("selected", entries.get(index).id).commit()) {
+                    image.recycle();
+                    Toast.makeText(activity,"未能保存壁纸，保留原设置",Toast.LENGTH_SHORT).show();
+                    schedule(); return;
+                }
                 transition.animate().cancel();
                 if (transition.getDrawable() != null) photo.setImageDrawable(transition.getDrawable());
                 transition.setImageDrawable(null);
@@ -150,8 +152,7 @@ final class FrameWallpapers {
                 }
                 hasImage = true;
                 current = index;
-                prefs.edit().putString("selected", entries.get(current).id).apply();
-                refreshLabels();
+                success.run();
                 android.util.Log.i("TvHome.Wallpaper", "Applied " + entries.get(current).name
                         + " rotating=" + rotating + " minutes=" + minutes);
                 schedule();
@@ -161,8 +162,7 @@ final class FrameWallpapers {
 
     private void schedule() {
         handler.removeCallbacks(rotate);
-        if (active && !destroyed && !loading && rotating && entries.size() > 1
-                && (dialog == null || !dialog.isShowing()))
+        if (active && !destroyed && !loading && rotating && entries.size() > 1)
             handler.postDelayed(rotate, minutes * 60_000L);
     }
 
@@ -170,138 +170,48 @@ final class FrameWallpapers {
     void pause() {
         active = false;
         handler.removeCallbacks(rotate);
-        if (intervalDialog != null) intervalDialog.dismiss();
-        if (dialog != null) dialog.dismiss();
     }
     void destroy() {
         destroyed = true;
         generation++;
+        previewGeneration++;
         pause();
         transition.animate().cancel();
         worker.shutdownNow();
         handler.removeCallbacksAndMessages(null);
     }
 
-    private void setMode(boolean enabled) {
-        rotating = enabled;
-        prefs.edit().putBoolean("rotating", enabled).apply();
-        refreshLabels();
-        schedule();
+    android.graphics.drawable.Drawable thumbnail(int index) {
+        try { return new android.graphics.drawable.BitmapDrawable(activity.getResources(), decode(entries.get(index).thumb,true)); }
+        catch (Exception unavailable) { return null; }
     }
-
-    void show(View returnFocus) {
-        if (entries.isEmpty()) return;
-        if (dialog != null && dialog.isShowing()) return;
-        handler.removeCallbacks(rotate);
-        captions.clear();
-        dialog = new Dialog(activity);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        LinearLayout panel = new LinearLayout(activity);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setPadding(dp(28), dp(20), dp(28), dp(18));
-        panel.setBackground(surface(0xF51C2025, false));
-        TextView title = label("壁纸设置", 24);
-        panel.addView(title, new LinearLayout.LayoutParams(-1, dp(42)));
-        LinearLayout modes = new LinearLayout(activity);
-        autoButton = button("", () -> setMode(true));
-        fixedButton = button("", () -> setMode(false));
-        intervalButton = button("", this::chooseInterval);
-        for (TextView button : new TextView[]{autoButton, fixedButton, intervalButton}) {
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, dp(40), 1);
-            p.rightMargin = dp(10);
-            modes.addView(button, p);
-        }
-        panel.addView(modes);
-        TextView note = label("选择图片可固定使用；自动轮播仅在桌面显示时计时", 12);
-        note.setTextColor(0xB3FFFFFF);
-        note.setGravity(Gravity.CENTER_VERTICAL);
-        panel.addView(note, new LinearLayout.LayoutParams(-1, dp(32)));
-        GridLayout grid = new GridLayout(activity);
-        grid.setColumnCount(5);
-        List<View> tiles = new ArrayList<>();
-        for (int i = 0; i < entries.size(); i++) {
-            final int index = i;
-            LinearLayout tile = new LinearLayout(activity);
-            tile.setOrientation(LinearLayout.VERTICAL);
-            tile.setPadding(dp(4), dp(4), dp(4), dp(3));
-            tile.setFocusable(true);
-            tile.setClickable(true);
-            tile.setId(View.generateViewId());
-            tile.setBackground(surface(0x18000000, false));
-            tile.setContentDescription(entries.get(i).name);
-            tile.setOnFocusChangeListener((v, focus) -> tile.setBackground(surface(0x18FFFFFF, focus)));
-            tile.setOnClickListener(v -> { setMode(false); load(index); });
-            ImageView thumb = new ImageView(activity);
-            thumb.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            try { thumb.setImageBitmap(decode(entries.get(i).thumb, true)); }
-            catch (Exception unavailable) { thumb.setBackgroundColor(0xFF30343A); }
-            tile.addView(thumb, new LinearLayout.LayoutParams(-1, dp(70)));
-            TextView caption = label("", 12);
-            caption.setGravity(Gravity.CENTER);
-            tile.addView(caption, new LinearLayout.LayoutParams(-1, dp(22)));
-            captions.add(caption);
-            GridLayout.LayoutParams p = new GridLayout.LayoutParams();
-            p.width = dp(148); p.height = dp(102);
-            p.rightMargin = dp(8); p.bottomMargin = dp(6);
-            grid.addView(tile, p);
-            tiles.add(tile);
-        }
-        for (int i = 0; i < tiles.size(); i++) {
-            View tile = tiles.get(i);
-            tile.setNextFocusLeftId(tiles.get(i % 5 == 0 ? i : i - 1).getId());
-            tile.setNextFocusRightId(tiles.get(i % 5 == 4 || i == tiles.size() - 1 ? i : i + 1).getId());
-            tile.setNextFocusUpId(i < 5 ? (i < 2 ? autoButton : i < 4 ? fixedButton : intervalButton).getId()
-                    : tiles.get(i - 5).getId());
-            tile.setNextFocusDownId(tiles.get(Math.min(i + 5, tiles.size() - 1)).getId());
-        }
-        autoButton.setNextFocusDownId(tiles.get(0).getId());
-        fixedButton.setNextFocusDownId(tiles.get(Math.min(2, tiles.size() - 1)).getId());
-        intervalButton.setNextFocusDownId(tiles.get(Math.min(4, tiles.size() - 1)).getId());
-        autoButton.setNextFocusUpId(autoButton.getId());
-        fixedButton.setNextFocusUpId(fixedButton.getId());
-        intervalButton.setNextFocusUpId(intervalButton.getId());
-        autoButton.setNextFocusLeftId(autoButton.getId());
-        autoButton.setNextFocusRightId(fixedButton.getId());
-        fixedButton.setNextFocusLeftId(autoButton.getId());
-        fixedButton.setNextFocusRightId(intervalButton.getId());
-        intervalButton.setNextFocusLeftId(fixedButton.getId());
-        intervalButton.setNextFocusRightId(intervalButton.getId());
-        panel.addView(grid);
-        dialog.setContentView(panel);
-        dialog.setOnDismissListener(d -> {
-            captions.clear();
-            returnFocus.requestFocus();
-            schedule();
+    int count() { return entries.size(); }
+    int selected() { return current; }
+    String name(int index) { return entries.get(index).name; }
+    boolean rotating() { return rotating; }
+    int minutes() { return minutes; }
+    void select(int index, Runnable success) { load(index, success); }
+    boolean rotation(boolean enabled, int value) {
+        int next = WallpaperCycle.minutes(value);
+        if (!prefs.edit().putBoolean("rotating", enabled).putInt("minutes", next).commit()) return false;
+        rotating = enabled; minutes = next; schedule(); return true;
+    }
+    private int previewGeneration;
+    void cancelPreview() { previewGeneration++; }
+    void cancelSelection() { generation++; loading=false; schedule(); }
+    void preview(int index, ImageView target, Runnable ready) {
+        final int request=++previewGeneration;
+        worker.execute(() -> {
+            Bitmap value=null;
+            try { value=decode(entries.get(index).file,false); }
+            catch(Exception error) { android.util.Log.w("TvHome.Wallpaper","Preview unavailable",error); }
+            final Bitmap image=value;
+            handler.post(() -> {
+                if(destroyed || request!=previewGeneration){if(image!=null)image.recycle();return;}
+                if(image!=null){target.setImageBitmap(image);ready.run();}
+                else Toast.makeText(activity,"预览加载失败，可重试或返回",Toast.LENGTH_SHORT).show();
+            });
         });
-        refreshLabels();
-        dialog.show();
-        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        dialog.getWindow().setLayout(dp(840), -2);
-        (rotating ? autoButton : fixedButton).requestFocus();
-    }
-
-    private void chooseInterval() {
-        String[] labels = {"1 分钟", "5 分钟", "15 分钟", "30 分钟"};
-        int selected = 1;
-        for (int i = 0; i < WallpaperCycle.MINUTES.length; i++) if (WallpaperCycle.MINUTES[i] == minutes) selected = i;
-        intervalDialog = new AlertDialog.Builder(activity).setTitle("轮播间隔")
-                .setSingleChoiceItems(labels, selected, (d, which) -> {
-                    minutes = WallpaperCycle.MINUTES[which];
-                    prefs.edit().putInt("minutes", minutes).apply();
-                    refreshLabels();
-                    d.dismiss();
-                    schedule();
-                }).setNegativeButton("返回", null).create();
-        intervalDialog.show();
-    }
-
-    private void refreshLabels() {
-        if (autoButton == null) return;
-        autoButton.setText((rotating ? "✓  " : "") + "自动轮播");
-        fixedButton.setText((!rotating ? "✓  " : "") + "固定壁纸");
-        intervalButton.setText("间隔：" + minutes + " 分钟");
-        for (int i = 0; i < captions.size(); i++)
-            captions.get(i).setText((i == current ? "✓ " : "") + entries.get(i).name);
     }
 
     void dump(PrintWriter out) {
@@ -310,29 +220,5 @@ final class FrameWallpapers {
                 + " loading=" + loading + " name=" + (entries.isEmpty() ? "" : entries.get(current).name));
     }
 
-    private TextView button(String text, Runnable action) {
-        TextView view = label(text, 15);
-        view.setGravity(Gravity.CENTER);
-        view.setId(View.generateViewId());
-        view.setFocusable(true);
-        view.setClickable(true);
-        view.setBackground(surface(0x18FFFFFF, false));
-        view.setOnFocusChangeListener((v, focus) -> view.setBackground(surface(0x28FFFFFF, focus)));
-        view.setOnClickListener(v -> action.run());
-        return view;
-    }
-    private TextView label(String text, int size) {
-        TextView view = new TextView(activity);
-        view.setText(text); view.setTextSize(size); view.setTextColor(Color.WHITE);
-        view.setIncludeFontPadding(false);
-        return view;
-    }
-    private GradientDrawable surface(int color, boolean focused) {
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(color);
-        drawable.setCornerRadius(dp(8));
-        if (focused) drawable.setStroke(dp(2), Color.WHITE);
-        return drawable;
-    }
     private int dp(int value) { return Math.round(value * activity.getResources().getDisplayMetrics().density); }
 }
