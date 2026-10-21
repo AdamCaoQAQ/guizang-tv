@@ -21,6 +21,7 @@ final class HomeSurface extends FrameLayout {
     private int selected;
     private android.graphics.Bitmap material;
     private int materialRequest;
+    private DockShelf dockShelf;
     HomeSurface(Context c, HomeAppearance style, HomeItems items, Drawable wallpaper, int selected,
                 boolean preview, Actions actions) {
         super(c); this.style=style;this.preview=preview;this.actions=actions;
@@ -37,14 +38,14 @@ final class HomeSurface extends FrameLayout {
             addView(shade,new LayoutParams(-1,-1));
         }
         boolean dock=style.get("layout")==1;
-        LinearLayout list=new LinearLayout(c);
-        list.setOrientation(dock?LinearLayout.HORIZONTAL:LinearLayout.VERTICAL);
-        list.setClipChildren(false);list.setClipToPadding(false);
+        LinearLayout list;
         if(dock){
-            HorizontalScrollView scroll=new HorizontalScrollView(c);scroll.setHorizontalScrollBarEnabled(false);scroll.setClipToPadding(false);
-            scroll.addView(list,new HorizontalScrollView.LayoutParams(-2,-1));
-            LayoutParams p=new LayoutParams(dp(840),dp(114),Gravity.BOTTOM|Gravity.START);p.leftMargin=dp(60);p.bottomMargin=dp(54);addView(scroll,p);
+            dockShelf=new DockShelf(c,items.order.size());list=dockShelf.track;
+            LayoutParams p=new LayoutParams(dp(884),dp(156),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+            p.bottomMargin=dp(48);addView(dockShelf,p);paintShelf();
         }else{
+            list=new LinearLayout(c);list.setOrientation(LinearLayout.VERTICAL);
+            list.setClipChildren(false);list.setClipToPadding(false);
             ScrollView scroll=new ScrollView(c);scroll.setVerticalScrollBarEnabled(false);scroll.setClipToPadding(false);
             scroll.addView(list,new ScrollView.LayoutParams(-1,-2));
             LayoutParams p=new LayoutParams(dp(620),dp(400),Gravity.CENTER_VERTICAL|Gravity.START);p.leftMargin=dp(56);addView(scroll,p);
@@ -53,26 +54,26 @@ final class HomeSurface extends FrameLayout {
             String id=items.order.get(i);final int index=i;
             String suffix=id.startsWith("hdmi:")?"HDMI "+id.substring(5):"";
             LinearLayout tile=new LinearLayout(c);tile.setOrientation(dock?LinearLayout.VERTICAL:LinearLayout.HORIZONTAL);
-            tile.setGravity(dock?Gravity.CENTER:Gravity.CENTER_VERTICAL);tile.setPadding(dp(14),dp(4),dp(18),dp(4));
-            TextView label=text(items.name(id),dock?13:style.size());label.setTypeface(style.typeface());
-            label.setMaxWidth(dp(dock?106:style.get("apps")==0?510:450));
+            tile.setGravity(dock?Gravity.CENTER:Gravity.CENTER_VERTICAL);tile.setPadding(dp(dock?8:14),dp(dock?8:4),dp(dock?8:18),dp(dock?8:4));
+            TextView label=text(items.name(id),dock?14:style.size());label.setTypeface(style.typeface());
+            label.setMaxWidth(dp(dock?116:style.get("apps")==0?510:450));
             label.setMaxLines(1);label.setEllipsize(TextUtils.TruncateAt.END);
             ImageView icon=new ImageView(c);icon.setImageDrawable(HomeIcons.get(c,id,style.ink()));
             int mode=style.get("apps");
-            if(mode!=0){LinearLayout.LayoutParams ip=new LinearLayout.LayoutParams(dp(dock?38:32),dp(dock?38:32));if(!dock)ip.rightMargin=dp(16);tile.addView(icon,ip);}
+            if(mode!=0){LinearLayout.LayoutParams ip=new LinearLayout.LayoutParams(dp(dock?58:32),dp(dock?58:32));if(!dock)ip.rightMargin=dp(16);else ip.bottomMargin=dp(6);tile.addView(icon,ip);}
             // Icon-only mode still reveals the focused app name and keeps its accessible label.
-            tile.addView(label,new LinearLayout.LayoutParams(dock?-1:-2,dock?dp(30):-2));
+            tile.addView(label,new LinearLayout.LayoutParams(dock?-1:-2,dock?dp(28):-2));
             label.setGravity(dock?Gravity.CENTER:Gravity.CENTER_VERTICAL);
             TextView tag=text(suffix,11);tag.setAlpha(.7f);
-            LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-2,-2);if(!dock)tp.leftMargin=dp(16);tile.addView(tag,tp);
-            LinearLayout.LayoutParams row=new LinearLayout.LayoutParams(dock?dp(112):-2,dock?dp(108):dp(65));
-            if(dock)row.rightMargin=dp(12);list.addView(tile,row);apps.add(tile);
+            LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(-2,dock?dp(16):-2);if(!dock)tp.leftMargin=dp(16);tile.addView(tag,tp);
+            LinearLayout.LayoutParams row=new LinearLayout.LayoutParams(dock?dp(132):-2,dock?-1:dp(65));
+            if(dock&&i<items.order.size()-1)row.rightMargin=dp(10);list.addView(tile,row);apps.add(tile);
             wire(tile,()->actions.open(id));tile.setContentDescription(items.name(id)+(suffix.isEmpty()?"":"，"+suffix));
             boolean chosen=index==this.selected;
             paint(tile,label,chosen,mode==1);
             tile.setOnFocusChangeListener((v,focus)->{
                 paint(tile,label,focus,mode==1);
-                if(focus){this.selected=index;actions.selected(index);for(int cIndex=0;cIndex<controls.size();cIndex++){View control=controls.get(cIndex);if(dock){control.setNextFocusDownId(tile.getId());if(cIndex==0)control.setNextFocusLeftId(tile.getId());}else control.setNextFocusLeftId(tile.getId());}}
+                if(focus){if(dockShelf!=null)dockShelf.reveal(tile,true);this.selected=index;actions.selected(index);for(int cIndex=0;cIndex<controls.size();cIndex++){View control=controls.get(cIndex);if(dock){control.setNextFocusDownId(tile.getId());if(cIndex==0)control.setNextFocusLeftId(tile.getId());}else control.setNextFocusLeftId(tile.getId());}}
             });
         }
         clock=text("",26);clock.setTypeface(style.typeface());clock.setGravity(Gravity.END);
@@ -92,7 +93,7 @@ final class HomeSurface extends FrameLayout {
         for(int i=0;i<apps.size();i++){
             View v=apps.get(i),prev=apps.get(Math.max(0,i-1)),next=apps.get(Math.min(apps.size()-1,i+1));
             v.setNextFocusUpId(dock?controls.get(0).getId():prev.getId());v.setNextFocusDownId(dock?v.getId():next.getId());
-            v.setNextFocusLeftId(dock?prev.getId():v.getId());v.setNextFocusRightId(dock&&i<apps.size()-1?next.getId():controls.get(0).getId());
+            v.setNextFocusLeftId(dock?prev.getId():v.getId());v.setNextFocusRightId(dock?next.getId():controls.get(0).getId());
         }
         for(int i=0;i<controls.size();i++){
             View v=controls.get(i);
@@ -106,26 +107,35 @@ final class HomeSurface extends FrameLayout {
             }
         }
         if(preview)setDescendantFocusability(FOCUS_BLOCK_DESCENDANTS);
+        if(dockShelf!=null)dockShelf.reveal(apps.get(this.selected),false);
         wallpaper(wallpaper);
     }
     void focusApp(){apps.get(selected).requestFocus();}
     private void paint(View v,TextView label,boolean focused,boolean iconsOnly){
         v.setAlpha(focused?1f:style.faded());label.setVisibility(iconsOnly&&!focused&&style.get("layout")==0?GONE:VISIBLE);
         if(iconsOnly&&style.get("layout")==1)label.setAlpha(focused?1:0);
-        if(style.get("focus")==1&&focused){
+        if(dockShelf!=null&&apps.contains(v)){
+            v.setBackground(WallpaperMaterial.rounded(focused&&style.get("focus")==1?(style.light()?0x20000000:0x26FFFFFF):Color.TRANSPARENT,dp(14)));
+        }else if(style.get("focus")==1&&focused){
             int veil=style.light()?0x2AFFFFFF:new int[]{0x60101418,0x48101418,0x30101418}[style.get("material")];
             v.setBackground(new WallpaperMaterial.Glass(this,v,material,dp(12),veil));
         }else v.setBackgroundColor(Color.TRANSPARENT);
     }
     void wallpaper(Drawable drawable){
         int request=++materialRequest;
-        if(style.get("focus")!=1||style.get("background")!=0)return;
+        if((style.get("focus")!=1&&dockShelf==null)||style.get("background")!=0)return;
         WallpaperMaterial.request(drawable,new int[]{14,42,2}[style.get("material")],field->{
-            if(request!=materialRequest)return;material=field;
-            for(View v:apps)if(v.isFocused()||(preview&&apps.indexOf(v)==selected))
+            if(request!=materialRequest)return;material=field;paintShelf();
+            for(View v:apps)if(dockShelf==null&&(v.isFocused()||(preview&&apps.indexOf(v)==selected)))
                 v.setBackground(new WallpaperMaterial.Glass(this,v,material,dp(12),new int[]{0x60101418,0x48101418,0x30101418}[style.get("material")]));
             for(View v:controls)if(v.isFocused())v.setBackground(new WallpaperMaterial.Glass(this,v,material,dp(12),0x50101418));
         });
+    }
+    private void paintShelf(){
+        if(dockShelf==null)return;
+        if(style.get("background")==0)
+            dockShelf.setBackground(new WallpaperMaterial.Glass(this,dockShelf,material,dp(22),new int[]{0x99101418,0x78101418,0x68101418}[style.get("material")]));
+        else dockShelf.setBackground(WallpaperMaterial.rounded(style.light()?0xE6E0DED8:0xE624282B,dp(22)));
     }
     private void wire(View v,Runnable run){
         v.setId(View.generateViewId());v.setFocusable(!preview);v.setFocusableInTouchMode(!preview);v.setClickable(!preview);
