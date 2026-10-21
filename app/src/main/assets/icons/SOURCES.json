@@ -1,0 +1,62 @@
+[
+  {
+    "name": "broadcast",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/broadcast-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "image",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/image-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "house",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/house-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "squares-four",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/squares-four-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "gear-six",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/gear-six-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "monitor-play",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/monitor-play-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "app-window",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/app-window-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "caret-right",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/regular/caret-right.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "check",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/regular/check.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "playstation",
+    "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/c71c69e3a27e4436936b831c72643e6513b9f49b/icons/playstation.svg",
+    "license": "CC0-1.0"
+  },
+  {
+    "name": "appletv",
+    "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/c71c69e3a27e4436936b831c72643e6513b9f49b/icons/appletv.svg",
+    "license": "CC0-1.0"
+  },
+  {
+    "name": "bilibili",
+    "source": "https://raw.githubusercontent.com/simple-icons/simple-icons/c71c69e3a27e4436936b831c72643e6513b9f49b/icons/bilibili.svg",
+    "license": "CC0-1.0"
+  }
+]

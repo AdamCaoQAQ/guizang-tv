@@ -45,6 +45,7 @@ final class FrameWallpapers {
     private final List<Entry> entries = new ArrayList<>();
     private boolean rotating, active, loading, destroyed, hasImage;
     private int current, minutes, generation;
+    Runnable changed=()->{};
     private final Runnable rotate = () -> load(WallpaperCycle.next(current, entries.size()));
 
     FrameWallpapers(Activity activity, ImageView photo, ImageView transition) {
@@ -141,11 +142,13 @@ final class FrameWallpapers {
                 transition.setImageDrawable(null);
                 if (!hasImage || !active) {
                     photo.setImageBitmap(image);
+                    changed.run();
                 } else {
                     transition.setImageBitmap(image);
                     transition.setAlpha(0f);
                     transition.animate().alpha(1f).setDuration(700).withEndAction(() -> {
                         photo.setImageBitmap(image);
+                        changed.run();
                         transition.setImageDrawable(null);
                         transition.setAlpha(0f);
                     }).start();

@@ -39,6 +39,7 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
         root.addView(photo,new FrameLayout.LayoutParams(-1,-1));root.addView(transition,new FrameLayout.LayoutParams(-1,-1));
         wallpapers=new FrameWallpapers(this,photo,transition);
         settings=new HomeSettings(this);
+        wallpapers.changed=()->{if(surface!=null)surface.wallpaper(wallpaperDrawable());};
         setContentView(root);refreshHome();surface.focusApp();
     }
     void refreshHome(){
@@ -48,7 +49,7 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
         root.setBackgroundColor(appearance.light()?0xFFF0EFE9:0xFF11151B);
         photo.setVisibility(appearance.get("background")==0?View.VISIBLE:View.INVISIBLE);
         transition.setVisibility(photo.getVisibility());
-        surface=new HomeSurface(this,appearance,items,null,restore,false,this);
+        surface=new HomeSurface(this,appearance,items,wallpaperDrawable(),restore,false,this);
         root.addView(surface,new FrameLayout.LayoutParams(-1,-1));
         surface.apps.get(restore).requestFocus();
         selected=restore;

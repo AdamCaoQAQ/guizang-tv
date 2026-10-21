@@ -9,8 +9,9 @@
   - 参考版本：`fa537d1892b71d2de2bf94c24cbff3812e9f70d5`
   - 参考其分组、首页预览、焦点与已应用值分离、确认应用和逐层返回的交互。
   - 本项目没有打包其 Tizen 代码、字体或照片。
-  - 已安装应用图标由 Android 本地读取，不作为素材重新打包。
-- 公开版的默认渐变、矢量图标及布局示意是本项目源码生成内容，采用同一 MIT 许可。
+  - 图标采用下述开源 SVG，不打包 Android 应用的原始图标。
+- 默认渐变、布局示意及本项目绘制代码采用 MIT 许可。
+- 品牌 SVG：Simple Icons，CC0-1.0；工具 SVG：Phosphor Icons Fill（勾选与箭头为 Regular），MIT。原 SVG、精确提交来源与许可证位于 `app/src/main/assets/icons/`；Android VectorDrawable 是同一路径数据的格式转换。商标权不因图标的开源许可而转移。
 - 使用 Android 系统字体，不打包 Outfit 字体。
 - Android Gradle Plugin、Gradle 与 JUnit 是构建或测试依赖，各自适用其许可证；不代表被重新许可为 MIT。
 - 各产品与商标归其权利人所有。本项目不隶属于小米、Sony、Apple 或哔哩哔哩。
