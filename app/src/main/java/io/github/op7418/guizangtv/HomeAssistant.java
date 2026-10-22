@@ -31,6 +31,7 @@ final class HomeAssistant {
     private LinearLayout body,actions;
     private TextView status,transcript,send,voice;
     private EditText input;
+    private ScrollView historyScroll;
     private boolean busy,listening,inFlight,pairing;
     private boolean active=true;
     private int generation;
@@ -82,7 +83,7 @@ final class HomeAssistant {
         TextView title=label("Codex",30);header.addView(title,new LinearLayout.LayoutParams(0,-2,1));
         button(header,"新对话",()->request("/reset",new JSONObject()));button(header,"连接设置",this::pair);button(header,"关闭",this::close);
         status=label("正在连接电脑…",13);status.setTextColor(0xAAFFFFFF);status.setPadding(0,a.dp(8),0,a.dp(12));body.addView(status);
-        ScrollView scroll=new ScrollView(a);scroll.setFillViewport(true);scroll.setPadding(a.dp(24),a.dp(20),a.dp(24),a.dp(20));
+        ScrollView scroll=new ScrollView(a);historyScroll=scroll;scroll.setFillViewport(true);scroll.setPadding(a.dp(24),a.dp(20),a.dp(24),a.dp(20));
         scroll.setBackground(WallpaperMaterial.rounded(0x30232A34,a.dp(20)));scroll.setFocusable(true);
         transcript=label("有什么想聊的？\n\n可以请我解释一个概念、帮你比较选择，或者一起整理想法。",19);transcript.setLineSpacing(a.dp(7),1);
         scroll.addView(transcript,new ScrollView.LayoutParams(-1,-2));body.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
@@ -130,12 +131,12 @@ final class HomeAssistant {
                 if(!showing()||pairing||!active||request!=generation){if(showing()&&!pairing&&active)main.postDelayed(poll,100);return;}
                 if(failure!=null){status.setText(failure);busy=false;send.setText("发送");}
                 else if(data.has("error")&&!data.has("messages"))status.setText(data.optString("error"));
-                else {render(data);if(path.equals("/message"))input.setText("");}
+                else {render(data,path.equals("/message"));if(path.equals("/message"))input.setText("");}
                 main.postDelayed(poll,failure==null?1000:5000);
             });
         });
     }
-    private void render(JSONObject data){
+    private void render(JSONObject data,boolean sent){
         busy=data.optBoolean("busy");listening=data.optBoolean("listening");send.setText(busy?"停止":"发送");
         voice.setVisibility(data.optBoolean("voiceAvailable")?View.VISIBLE:View.GONE);
         String error=data.optString("error");
@@ -145,7 +146,18 @@ final class HomeAssistant {
         if(history!=null)for(int i=0;i<history.length();i++){JSONObject m=history.optJSONObject(i);if(m==null)continue;text.append(m.optString("role").equals("user")?"你\n":"Codex\n").append(m.optString("text")).append("\n\n");}
         String delta=data.optString("reply");if(!delta.isEmpty())text.append("Codex\n").append(delta);
         String value=text.length()==0?"有什么想聊的？\n\n可以请我解释一个概念、帮你比较选择，或者一起整理想法。":text.toString().trim();
-        if(!value.equals(lastTranscript)){lastTranscript=value;transcript.setText(value);}
+        if(!value.equals(lastTranscript)){
+            // Follow a new conversation and our own sends; respect scrolling back through history.
+            boolean follow=lastTranscript.isEmpty()||sent||!historyScroll.canScrollVertically(1);
+            lastTranscript=value;transcript.setText(value);
+            if(follow){
+                ScrollView target=historyScroll;TextView content=transcript;int page=generation;
+                target.post(()->{
+                    if(showing()&&!pairing&&page==generation&&target==historyScroll)
+                        target.scrollTo(0,content.getBottom()); // Clamp to bottom without stealing remote focus.
+                });
+            }
+        }
     }
     private EditText editor(String hint){EditText v=new EditText(a);v.setTextColor(0xFFFFFFFF);v.setHintTextColor(0x88FFFFFF);v.setTextSize(17);v.setHint(hint);v.setPadding(a.dp(18),a.dp(10),a.dp(18),a.dp(10));v.setBackground(WallpaperMaterial.rounded(0x24FFFFFF,a.dp(14)));return v;}
     private TextView label(String value,int size){TextView v=new TextView(a);v.setText(value);v.setTextSize(size);v.setTextColor(0xFFF5F6F8);v.setTypeface(Typeface.create("sans-serif",Typeface.NORMAL));return v;}
