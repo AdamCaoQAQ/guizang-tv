@@ -1,6 +1,6 @@
 # 归藏电视 · GuiZang TV
 
-> main 分支新增 [Codex 电视对话试用](docs/CODEX.md)：通过同一局域网电脑连接 Codex，支持输入、流式回答与停止。尚未连接米家或个人日程；遥控器语音仍在验证。
+> main 分支提供默认关闭的 [Codex 对话实验](docs/CODEX.md)：在「设置 → 实验性功能 → Codex 对话 → 开启」后显示入口，通过同一局域网电脑连接 Codex。支持文字与系统输入法语音（需设备支持），尚未接入米家或个人日程。正式 v0.3.0 APK 不含此功能。
 
 一个给国内小米电视做的简洁桌面：大字、壁纸、常用应用，以及直接进入游戏机和 Apple TV 的入口。
 
@@ -27,7 +27,7 @@
 - 壁纸支持固定选择、自动轮播，默认每 5 分钟切换；可选 1 / 5 / 15 / 30 分钟。
 - 淡入淡出切换壁纸，离开桌面后暂停计时，返回后重新计时。
 - 遥控器方向键操作，记住上次选中的入口和壁纸偏好。
-- 不需要账号或无障碍服务；不下载或预装视频 App。main 的可选天气需要联网权限，默认关闭；v0.3.0 正式版仍不联网。
+- 基础桌面不需要账号或无障碍服务，不下载或预装视频 App。main 的可选天气和 Codex 实验默认关闭；后者需要电脑上的 Codex 登录及相应额度。v0.3.0 正式版仍不联网。
 - 支持实验性开机自动进入：默认关闭，适配机型需先完成一次 ADB 配置，详见 [启用与恢复说明](docs/BOOT-START.md)。
 
 公开版自带五张经过来源核对的 Unsplash 照片：雾中雪岭、雨林山路、热带绿叶、山间彩虹、流光花影。图片适用 [Unsplash License](https://unsplash.com/license)，代码适用 MIT；[完整来源与署名](docs/WALLPAPERS.md)随源码和 APK 保存。其余版权未确认的照片未纳入。也可以用自己的图片构建。
@@ -58,6 +58,16 @@ adb install -r guizang-tv-v0.3.0.apk
 
 未配置开机自动进入时，卸载「归藏电视」即可结束试用。已经配置的用户先按 [关闭与恢复步骤](docs/BOOT-START.md) 停用并核对系统目标，避免缓存调用或降级旧版后行为变化。公开版包名为 `io.github.op7418.guizangtv`，不会覆盖上游 cleanYourTV，也不会覆盖原有私人试用版，设置不会自动迁移。
 
+## 让 AI 帮你配置
+
+可将本仓库交给 Codex、Claude Code 或其他 AI 编程助手。AI 入口是 [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md)，完整流程见 [AI 适配与引导指南](docs/AI-SETUP.md)，涵盖其他安卓设备、Mac、Windows、Linux 电脑、配对、语音测试和故障定位。
+
+可以直接说：
+
+> 请阅读 AGENTS.md 和 docs/AI-SETUP.md，检查我的安卓设备与电脑环境，保留已有设置，指导我手动开启 Codex 实验并完成配对。先验证文字和重复进入，再测试语音；说明已通过和未验证的能力，不公开凭证。
+
+目前完整实测组合是指定小米电视与 Mac。Windows/Linux 和其他安卓设备提供适配路径，尚不代表全面兼容；电脑运行连接服务，Android APK 不会因此变成电脑原生桌面。
+
 ## 从源码构建
 
 要求：**JDK 17、Gradle 8.9、Android SDK Platform 34、Build Tools 34.0.0**。
@@ -72,7 +82,7 @@ export JAVA_HOME=/path/to/jdk-17
 gradle :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
 ```
 
-生成文件：`app/build/outputs/apk/debug/app-debug.apk`。首次构建需要联网下载 Android Gradle Plugin 和测试依赖，应用运行本身不需要联网。
+生成文件：`app/build/outputs/apk/debug/app-debug.apk`。首次构建需要联网下载 Android Gradle Plugin 和测试依赖，基础桌面离线可用；开启天气或 Codex 实验后，相应功能需要网络。
 
 CI 会构建 Debug APK 并执行测试、lint；下载 Actions 产物需要登录 GitHub。Debug 包用于自行测试，不保证与 Releases 的正式签名兼容。
 

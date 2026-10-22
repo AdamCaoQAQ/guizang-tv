@@ -38,11 +38,19 @@ final class HomeAssistant {
     private String lastDraft="",lastTranscript="";
     private final Runnable poll=()->request("/state",null);
     HomeAssistant(FrameHomeActivity activity){a=activity;prefs=a.getSharedPreferences("codex-companion",0);}
+    static boolean enabled(android.content.Context context){
+        return context.getSharedPreferences("codex-companion",0).getBoolean("enabled",false);
+    }
+    boolean enabled(boolean value){
+        if(!prefs.edit().putBoolean("enabled",value).commit())return false;
+        if(!value){main.removeCallbacks(poll);close();}
+        return true;
+    }
     boolean showing(){return dialog!=null&&dialog.isShowing();}
     void show(){
-        if(showing())return;
+        if(!enabled(a)||showing())return;
         dialog=new Dialog(a);dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setOnDismissListener(d->{generation++;main.removeCallbacks(poll);a.updateRotation();a.surface.controls.get(3).requestFocus();});
+        dialog.setOnDismissListener(d->{generation++;main.removeCallbacks(poll);a.updateRotation();a.surface.controls.get(Math.min(3,a.surface.controls.size()-1)).requestFocus();});
         stage=new FrameLayout(a);stage.setBackgroundColor(0xFF11151A);
         ImageView backdrop=new ImageView(a);backdrop.setScaleType(ImageView.ScaleType.CENTER_CROP);
         stage.addView(backdrop,new FrameLayout.LayoutParams(-1,-1));
@@ -54,7 +62,7 @@ final class HomeAssistant {
         dialog.getWindow().getDecorView().setSystemUiVisibility(5894);
         if(prefs.contains("connection"))chat();else pair();a.updateRotation();
     }
-    void active(boolean value){active=value;main.removeCallbacks(poll);if(value&&showing()&&!pairing)main.post(poll);}
+    void active(boolean value){active=value;main.removeCallbacks(poll);if(value&&enabled(a)&&showing()&&!pairing)main.post(poll);}
     void close(){if(dialog!=null)dialog.dismiss();}
     void destroy(){close();worker.shutdownNow();main.removeCallbacksAndMessages(null);}
     private LinearLayout layout(){
@@ -118,7 +126,7 @@ final class HomeAssistant {
     }
     private void hideKeyboard(View view){((InputMethodManager)a.getSystemService(android.content.Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(view.getWindowToken(),0);}
     private void request(String path,JSONObject body){
-        if(!showing()||pairing||!active)return;
+        if(!enabled(a)||!showing()||pairing||!active)return;
         if(inFlight){if(path.equals("/state"))main.postDelayed(poll,700);else {int pending=generation;main.postDelayed(()->{if(pending==generation)request(path,body);},200);}return;}
         inFlight=true;main.removeCallbacks(poll);int request=generation;
         String connection=prefs.getString("connection","");
@@ -128,7 +136,7 @@ final class HomeAssistant {
             JSONObject data=result;String failure=error;
             main.post(()->{
                 inFlight=false;
-                if(!showing()||pairing||!active||request!=generation){if(showing()&&!pairing&&active)main.postDelayed(poll,100);return;}
+                if(!enabled(a)||!showing()||pairing||!active||request!=generation){if(showing()&&!pairing&&active)main.postDelayed(poll,100);return;}
                 if(failure!=null){status.setText(failure);busy=false;send.setText("发送");}
                 else if(data.has("error")&&!data.has("messages"))status.setText(data.optString("error"));
                 else {render(data,path.equals("/message"));if(path.equals("/message"))input.setText("");}

@@ -75,7 +75,7 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
         if(index==0)showLibrary();
         else if(index==1){if(!XiaomiControls.showInputs(this))message("暂时无法打开信号源");}
         else if(index==2)settings.show();
-        else assistant.show();
+        else if(index==3&&HomeAssistant.enabled(this))assistant.show();
     }
     void stockHome(){if(!XiaomiControls.startStockHome(this,new ComponentName("com.mitv.tvhome","com.mitv.tvhome.MainActivity")))message("暂时无法打开小米原桌面");}
     void systemSettings(){Intent i=XiaomiControls.settings(this,Settings.ACTION_SETTINGS);if(i==null)i=new Intent(Settings.ACTION_SETTINGS);launch(i,"暂时无法打开设置");}
