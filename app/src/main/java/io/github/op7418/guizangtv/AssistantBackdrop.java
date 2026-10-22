@@ -4,11 +4,15 @@ import android.content.Context;
 import android.graphics.*;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.View;
+import android.graphics.drawable.Drawable;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 
 /** Two cached Gaussian fields, masked progressively over the actual home snapshot. */
 final class AssistantBackdrop extends View {
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
-    private Bitmap soft,strong;
+    private Bitmap soft,strong,frosted;
+    private final ArrayList<WeakReference<View>> materialHosts=new ArrayList<>();
     private final Bitmap snapshot;
     private final int sourceWidth,sourceHeight;
     AssistantBackdrop(Context context,Bitmap snapshot){
@@ -16,8 +20,21 @@ final class AssistantBackdrop extends View {
         BitmapDrawable source=new BitmapDrawable(getResources(),snapshot);
         WallpaperMaterial.request(source,22,b->{soft=b;invalidate();});
         WallpaperMaterial.request(source,64,b->{strong=b;invalidate();});
+        WallpaperMaterial.request(source,90,b->{
+            frosted=b;invalidateMaterials();
+        });
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
     }
+    Drawable glass(View host,boolean light,float radius){
+        materialHosts.add(new WeakReference<>(host));return new AssistantGlass(this,host,light,radius);
+    }
+    void invalidateMaterials(){
+        for(int i=materialHosts.size()-1;i>=0;i--){
+            View host=materialHosts.get(i).get();if(host==null)materialHosts.remove(i);else host.invalidate();
+        }
+    }
+    Bitmap frostedField(){return frosted;}
+    float desktopHeight(){return getWidth()*sourceHeight/(float)sourceWidth;}
     @Override protected void onDraw(Canvas canvas){
         float h=getHeight(),w=getWidth();
         // Keep the desktop registered to the screen even when the IME shrinks this window.

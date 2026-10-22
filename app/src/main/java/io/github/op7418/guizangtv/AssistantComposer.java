@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.*;
 import android.os.SystemClock;
 import android.widget.FrameLayout;
+import android.graphics.drawable.Drawable;
 
 /** Original native rendering inspired by Border Beam; only the lower rim emits light. */
 final class AssistantComposer extends FrameLayout {
@@ -11,9 +12,10 @@ final class AssistantComposer extends FrameLayout {
     private final RectF shell=new RectF();
     private boolean running=true;
     private Bitmap glowMask;
+    private final Drawable glass;
     private final PorterDuffXfermode maskMode=new PorterDuffXfermode(PorterDuff.Mode.DST_IN);
     private final float density;
-    AssistantComposer(Context context){super(context);density=getResources().getDisplayMetrics().density;setWillNotDraw(false);setClipChildren(false);}
+    AssistantComposer(Context context,AssistantBackdrop backdrop){super(context);density=getResources().getDisplayMetrics().density;glass=backdrop.glass(this,false,dp(30));setWillNotDraw(false);setClipChildren(false);}
     void active(boolean active){running=active;invalidate();}
     private float dp(float n){return n*density;}
     @Override protected void onSizeChanged(int w,int h,int oldw,int oldh){
@@ -32,8 +34,8 @@ final class AssistantComposer extends FrameLayout {
     @Override protected void onDraw(Canvas c){
         float w=getWidth(),h=getHeight(),radius=dp(30);
         shell.set(dp(9),dp(6),w-dp(9),h-dp(14));
-        paint.setStyle(Paint.Style.FILL);paint.setColor(0xF0191D26);c.drawRoundRect(shell,radius,radius,paint);
-        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(.6f));paint.setColor(0x26FFFFFF);c.drawRoundRect(shell,radius,radius,paint);
+        glass.setBounds(Math.round(shell.left),Math.round(shell.top),Math.round(shell.right),Math.round(shell.bottom));glass.draw(c);
+        paint.setStyle(Paint.Style.FILL);paint.setColor(Color.WHITE);
         float phase=(SystemClock.uptimeMillis()%9000)/9000f;
         float center=w*(.5f+.23f*(float)Math.sin(phase*Math.PI*2));
         paint.setShader(new LinearGradient(center-w*.58f,0,center+w*.58f,0,

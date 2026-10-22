@@ -27,6 +27,7 @@ final class HomeAssistant {
     private final ExecutorService worker=Executors.newSingleThreadExecutor();
     private Dialog dialog;
     private FrameLayout stage;
+    private AssistantBackdrop backdrop;
     private LinearLayout body,messages;
     private TextView status;
     private ImageView send;
@@ -57,9 +58,9 @@ final class HomeAssistant {
             a.updateRotation();a.surface.controls.get(Math.min(3,a.surface.controls.size()-1)).requestFocus();
         });
         stage=new FrameLayout(a);
-        stage.addView(new AssistantBackdrop(a,snapshot),new FrameLayout.LayoutParams(-1,-1));
+        backdrop=new AssistantBackdrop(a,snapshot);stage.addView(backdrop,new FrameLayout.LayoutParams(-1,-1));
         stage.setOnClickListener(v->close());
-        stage.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->sizeBody());
+        stage.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob)->{sizeBody();stage.post(backdrop::invalidateMaterials);});
         dialog.setContentView(stage);dialog.show();
         Window window=dialog.getWindow();window.setBackgroundDrawableResource(android.R.color.transparent);
         window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND|WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -109,6 +110,7 @@ final class HomeAssistant {
     private void chat(){
         pairing=false;generation++;main.removeCallbacks(poll);lastDraft="";lastTranscript="";layout();
         historyScroll=new ScrollView(a);historyScroll.setFillViewport(true);historyScroll.setClipToPadding(false);
+        historyScroll.setOnScrollChangeListener((v,x,y,oldX,oldY)->backdrop.invalidateMaterials());
         historyScroll.setVerticalFadingEdgeEnabled(true);historyScroll.setFadingEdgeLength(a.dp(24));
         historyScroll.setVerticalScrollBarEnabled(false);historyScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
         historyScroll.setFocusable(true);historyScroll.setContentDescription("对话记录，上下滚动");
@@ -121,7 +123,7 @@ final class HomeAssistant {
             }
         });
         historyScroll.addView(messages,new ScrollView.LayoutParams(-1,-2));body.addView(historyScroll,new LinearLayout.LayoutParams(-1,0,1));
-        composer=new AssistantComposer(a);body.addView(composer,new LinearLayout.LayoutParams(-1,a.dp(82)));
+        composer=new AssistantComposer(a,backdrop);body.addView(composer,new LinearLayout.LayoutParams(-1,a.dp(82)));
         LinearLayout row=new LinearLayout(a);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(a.dp(18),0,a.dp(18),0);
         FrameLayout.LayoutParams rp=new FrameLayout.LayoutParams(-1,a.dp(58),Gravity.TOP);rp.topMargin=a.dp(7);composer.addView(row,rp);
         ImageView mic=icon(row,R.drawable.mark_microphone,"键盘 / 语音",this::showKeyboard,false);
@@ -202,7 +204,8 @@ final class HomeAssistant {
             v.setMaxWidth(a.dp(660));LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-2,-2);p.gravity=Gravity.LEFT;p.bottomMargin=a.dp(10);messages.addView(v,p);
         }
         if(!v.getText().toString().equals(value))v.setText(value);
-        v.setTextColor(own?0xFFF0F5FC:0xFF242A34);v.setBackground(WallpaperMaterial.rounded(own?0xEC203D59:0xEEF0F2F7,a.dp(24)));
+        v.setTextColor(own?0xFF1C2027:0xFFF2F3F6);
+        if(!Boolean.valueOf(own).equals(v.getTag())){v.setTag(own);v.setBackground(backdrop.glass(v,own,a.dp(24)));}
         v.setContentDescription((own?"你的消息：":"助手回复：")+value);
     }
     private TextView label(String value,int size){TextView v=new TextView(a);v.setText(value);v.setTextSize(size);v.setTextColor(0xFFF5F6F8);v.setTypeface(Typeface.create("sans-serif",Typeface.NORMAL));return v;}

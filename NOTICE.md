@@ -10,7 +10,7 @@
   - 参考其分组、首页预览、焦点与已应用值分离、确认应用和逐层返回的交互。
   - 本项目没有打包其 Tizen 代码、字体或照片。
   - 图标采用下述开源 SVG，不打包 Android 应用的原始图标。
-- Codex 输入浮层光效参考 [Libraries.dev Beam](https://libraries.dev/beam) 的视觉形式；本项目自行使用 Android Canvas 绘制，没有复制其组件实现或引入其运行时。
+- Codex 输入浮层、磨砂材质与细描边参考并适配 [Libraries.dev](https://github.com/Jakubantalik/Libraries.dev) 的公开 Web 实现（MIT，Copyright (c) 2026 Jakub Antalik），固定版本 `b0e5a8f1e659ac549e6035e42a750e73678ed67a`。来源与原生映射见 [适配记录](docs/BEAM-ANDROID.md)，MIT 通知在 `app/src/main/assets/licenses/LIBRARIES-DEV-MIT.txt` 并随 APK 打包；未引入 React/SwiftUI 运行时。
 - 默认渐变、布局示意及本项目绘制代码采用 MIT 许可。
 - 品牌 SVG：Simple Icons，CC0-1.0；工具 SVG：Phosphor Icons Fill（勾选与箭头为 Regular），MIT。原 SVG、精确提交来源与许可证位于 `app/src/main/assets/icons/`；Android VectorDrawable 是同一路径数据的格式转换。商标权不因图标的开源许可而转移。
 - 使用 Android 系统字体，不打包 Outfit 字体。
