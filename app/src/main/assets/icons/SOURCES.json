@@ -63,5 +63,20 @@
     "name": "chat-circle-dots",
     "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/chat-circle-dots-fill.svg",
     "license": "MIT"
+  },
+  {
+    "name": "microphone",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/microphone-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "arrow-up",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/arrow-up-fill.svg",
+    "license": "MIT"
+  },
+  {
+    "name": "stop",
+    "source": "https://raw.githubusercontent.com/phosphor-icons/core/2b75f3ad12b420c9504ef05df8d2564a28f8500e/assets/fill/stop-fill.svg",
+    "license": "MIT"
   }
 ]
