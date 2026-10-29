@@ -17,6 +17,7 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
     HomeItems items;
     FrameWallpapers wallpapers;
     HomeSettings settings;
+    AerialBackground aerial;
     HomeWeather weather;
     HomeAssistant assistant;
     HomeSurface surface;
@@ -24,6 +25,13 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
     private ImageView photo;
     private AlertDialog library;
     private boolean resumed;
+    private boolean screenOn = true;
+    private final BroadcastReceiver screen = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            screenOn = Intent.ACTION_SCREEN_ON.equals(intent.getAction());
+            updateRotation();
+        }
+    };
     private int selected;
     private final Runnable tick = new Runnable(){public void run(){
         String time=new SimpleDateFormat("HH:mm",Locale.CHINA).format(new Date());
@@ -40,28 +48,41 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
         photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
         root.addView(photo,new FrameLayout.LayoutParams(-1,-1));
         wallpapers=new FrameWallpapers(this,photo);
+        aerial=new AerialBackground(this,root,photo);
         weather=new HomeWeather(this,this::weatherChanged);
         settings=new HomeSettings(this);
         assistant=new HomeAssistant(this);
         wallpapers.changed=()->{if(surface!=null)surface.wallpaper(wallpaperDrawable());};
         setContentView(root);refreshHome();surface.focusApp();
+        screenOn = ((PowerManager)getSystemService(POWER_SERVICE)).isInteractive();
+        IntentFilter screenFilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        screenFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        if (Build.VERSION.SDK_INT >= 33) registerReceiver(screen, screenFilter, Context.RECEIVER_NOT_EXPORTED);
+        else registerReceiver(screen, screenFilter);
     }
     void refreshHome(){
         int restore=Math.max(0,Math.min(items.order.size()-1,selected));
         selected=restore;
         if(surface!=null)root.removeView(surface);
         root.setBackgroundColor(appearance.light()?0xFFF0EFE9:0xFF11151B);
-        photo.setVisibility(appearance.get("background")==0?View.VISIBLE:View.INVISIBLE);
+        photo.setVisibility(appearance.imagery()?View.VISIBLE:View.INVISIBLE);
         surface=new HomeSurface(this,appearance,items,wallpaperDrawable(),restore,false,this);
         root.addView(surface,new FrameLayout.LayoutParams(-1,-1));
         surface.apps.get(restore).requestFocus();
         selected=restore;
+        aerial.front();
         handler.removeCallbacks(tick);tick.run();weatherChanged();updateRotation();
     }
     HomeSurface preview(){HomeSurface view=new HomeSurface(this,appearance,items,wallpaperDrawable(),selected,true,this);view.weather(weather.current());return view;}
     void weatherChanged(){if(surface!=null)surface.weather(weather.current());if(settings!=null)settings.weatherChanged();}
     Drawable wallpaperDrawable(){return photo.getDrawable();}
-    void updateRotation(){if(weather!=null)weather.active(resumed&&!settings.showing()&&(assistant==null||!assistant.showing())&&(library==null||!library.isShowing()));if(resumed&&appearance.get("background")==0&&!settings.showing()&&(assistant==null||!assistant.showing())&&(library==null||!library.isShowing()))wallpapers.resume();else wallpapers.pause();}
+    void updateRotation(){
+        boolean visible=resumed&&screenOn&&!settings.showing()&&(assistant==null||!assistant.showing())&&(library==null||!library.isShowing());
+        if(weather!=null)weather.active(visible);
+        aerial.active(visible&&appearance.get("background")==3);
+        if(visible&&appearance.get("background")==0)wallpapers.resume();else wallpapers.pause();
+        if(!appearance.imagery())photo.setVisibility(View.INVISIBLE);
+    }
     @Override public void selected(int index){selected=index;getSharedPreferences("frame-home",0).edit().putInt("selected",index).apply();}
     @Override public void open(String id){
         if(id.startsWith("hdmi:")){if(!XiaomiControls.openHdmi(this,Integer.parseInt(id.substring(5))))message("暂时无法切换信号源");return;}
@@ -88,11 +109,12 @@ public final class FrameHomeActivity extends Activity implements HomeSurface.Act
     }
     @Override protected void onResume(){super.onResume();resumed=true;assistant.active(true);BootStart.confirm(this);handler.removeCallbacks(tick);tick.run();updateRotation();}
     @Override protected void onNewIntent(Intent i){super.onNewIntent(i);setIntent(i);}
-    @Override protected void onPause(){resumed=false;assistant.active(false);weather.active(false);handler.removeCallbacks(tick);wallpapers.pause();if(library!=null)library.dismiss();super.onPause();}
-    @Override protected void onDestroy(){assistant.destroy();settings.close();weather.destroy();wallpapers.destroy();handler.removeCallbacksAndMessages(null);super.onDestroy();}
+    @Override protected void onPause(){resumed=false;assistant.active(false);weather.active(false);handler.removeCallbacks(tick);aerial.active(false);wallpapers.pause();if(library!=null)library.dismiss();super.onPause();}
+    @Override protected void onDestroy(){unregisterReceiver(screen);aerial.destroy();assistant.destroy();settings.close();weather.destroy();wallpapers.destroy();handler.removeCallbacksAndMessages(null);super.onDestroy();}
     @Override public void onBackPressed(){if(surface.controls.contains(getCurrentFocus()))surface.focusApp();else if(XiaomiControls.enabled())stockHome();else super.onBackPressed();}
     @Override public void dump(String prefix,java.io.FileDescriptor fd,java.io.PrintWriter out,String[] args){
         super.dump(prefix,fd,out,args);wallpapers.dump(out);BootStart.dump(this,out);weather.dump(out);
+        out.println("Aerial: "+aerial.status());
         out.println("HomeAppearance: "+appearance.prefs.getAll()+" items="+items.order+" settings="+settings.page());
     }
     void message(String value){Toast.makeText(this,value,Toast.LENGTH_LONG).show();}

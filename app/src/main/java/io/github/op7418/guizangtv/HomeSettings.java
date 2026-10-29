@@ -98,12 +98,18 @@ final class HomeSettings {
         panel.addView(footer,new LinearLayout.LayoutParams(-1,a.dp(26)));
         switch(page){
             case "overview":
-                entry("背景", "壁纸、轮播与纯色",()->go("background"));entry("布局","列表、Dock、图标与文字",()->go("layout"));
+                entry("背景", "照片、苹果航拍与纯色",()->go("background"));entry("布局","列表、Dock、图标与文字",()->go("layout"));
                 entry("字体","字形与字号",()->go("type"));entry("选中样式","文字高亮与毛玻璃",()->go("focus"));
                 entry("时间与天气","城市、温度与天气显示",()->go("weather"));entry("首页内容","添加、排序、隐藏",()->go("home"));entry("电视与启动","自动进入与小米系统",()->go("tv"));entry("实验性功能","Codex 对话 · 默认关闭",()->go("experiments"));break;
             case "background":
-                row("背景","background",new String[]{"照片","浅色","深色"});
+                row("背景","background",new String[]{"照片","浅色","深色","苹果航拍"});
                 if(a.appearance.get("background")==0){entry("壁纸",a.wallpapers.name(a.wallpapers.selected()),()->go("wallpaper"));entry("轮播",a.wallpapers.rotating()?"每 "+a.wallpapers.minutes()+" 分钟":"固定壁纸",()->go("rotation"));if(a.wallpapers.rotating())entry("渐变时长",WallpaperCycle.fadeLabel(a.wallpapers.fadeMs()),()->go("fade"));}
+                else if(a.appearance.get("background")==3){
+                    entry("回退照片",a.wallpapers.name(a.wallpapers.selected()),()->go("wallpaper"));
+                    note("Apple 航拍 · 114 段 1080p 视频，静音随机连续播放。需要联网，影片直接来自 Apple 服务器。");
+                    note("保留首页应用与时钟。设置页、其他应用和待机时停止播放；网络失败时显示回退照片。预览使用照片，关闭设置后开始航拍。");
+                    note("影片版权归 Apple；目录来源 Aerial TV。当前状态："+a.aerial.status());
+                }
                 else note("切换回照片背景后，可选择壁纸和轮播。原来的照片与轮播偏好会保留。");break;
             case "layout":
                 row("首页布局","layout",new String[]{"纵向列表","横向 Dock"});row("应用显示","apps",new String[]{"文字","图标","图标＋文字"});row("右侧操作","controls",new String[]{"文字","图标","图标＋文字"});

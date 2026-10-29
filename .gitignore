@@ -27,3 +27,6 @@ app/src/main/assets/wallpapers/*
 # Companion pairing material must stay outside source control.
 tv-pairing.txt
 companion-state/
+
+# Public Apple trust anchor for the aerial CDN, not pairing/private key material.
+!app/src/main/res/raw/apple_root_ca.pem

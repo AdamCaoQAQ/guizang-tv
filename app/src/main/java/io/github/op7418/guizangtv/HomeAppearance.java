@@ -10,6 +10,7 @@ final class HomeAppearance {
     HomeAppearance(Context c) { prefs = c.getSharedPreferences("home-appearance", Context.MODE_PRIVATE); }
     int get(String key) { return AppearanceValues.normalize(key, prefs.getInt(key, AppearanceValues.defaultValue(key))); }
     boolean set(String key, int value) { return prefs.edit().putInt(key, AppearanceValues.normalize(key, value)).commit(); }
+    boolean imagery() { return get("background") == 0 || get("background") == 3; }
     boolean light() { return get("background") == 1; }
     int ink() { return light() ? 0xFF17202A : 0xFFFFFFFF; }
     float faded() { return new float[]{.75f, .55f, .35f}[get("dim")]; }

@@ -22,3 +22,9 @@ v0.1.1 起，内置五张经原页面核对的 Unsplash 照片，适用 **Unspla
 用户自行加入的照片不因放入本工程而自动获得 MIT 许可。其他未授权公开的私人试用素材、实机诊断数据、签名密钥均不在公开源代码或官方 APK 中。
 
 main 的可选天气使用 [Open-Meteo](https://open-meteo.com/) 数据（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)），温度取整、天气码转换为中文及自绘矢量图标；城市搜索由 Open-Meteo / GeoNames 提供，IP 城市由 [IPWhois](https://ipwhois.io/) 提供。托管 API 的使用条款独立于本项目代码许可，详见[天气说明](docs/WEATHER.md)。
+
+## Apple 航拍背景
+
+- 视频目录 `app/src/main/assets/aerials.json`、域名专用 Apple 根证书及播放方案参考 [pengchujin/aerial-tv](https://github.com/pengchujin/aerial-tv)，Copyright (c) 2026 pengchujin，MIT。完整 MIT 通知在 `app/src/main/assets/licenses/AERIAL-TV-MIT.txt`，随 APK 打包。
+- Java 播放控制器为本项目实现；使用 AndroidX Media3 ExoPlayer（Apache-2.0）。
+- Apple 航拍影片版权归 Apple，影片不包含在源码或 APK 中，启用后从 `sylvan.apple.com` 以 HTTPS 播放。代码的 MIT 许可不适用于影片；本项目与 Apple 无关联。

@@ -94,6 +94,10 @@ gradle :app:assembleRelease :app:testReleaseUnitTest :app:lintRelease
 
 未设置签名时输出未签名 APK。维护者可在本地配置 `GUIZANG_KEYSTORE`、`GUIZANG_STORE_PASSWORD`、`GUIZANG_KEY_ALIAS`（默认 `guizang-tv`）和 `GUIZANG_KEY_PASSWORD`（默认同 store password），再构建签名版本。密钥和密码不应提交到 Git。
 
+## 开发分支：苹果航拍动态背景
+
+「设置 → 背景 → 苹果航拍」可将 Apple 航拍影片放在现有应用列表 / Dock 和时钟后方，静音随机连续播放，并显示中文地名。视频目录来源 Aerial TV（114 段 1080p H.264），影片以 HTTPS 从 Apple 服务器播放，不打包进 APK。默认仍使用照片；进入设置、其他应用或待机时释放播放器，加载失败回退照片。详见 [背景设置](docs/SETTINGS.md#开发版苹果航拍背景)。这是本分支新增能力，尚未在电视上实测。
+
 ## 使用自己的壁纸
 
 目前支持**构建时打包**，电视端可以从已打包的图片中选择；尚未提供电视端文件导入功能。

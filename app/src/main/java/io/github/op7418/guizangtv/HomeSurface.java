@@ -31,9 +31,9 @@ final class HomeSurface extends FrameLayout {
         previewPhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
         if(preview) {
             setBackgroundColor(style.light()?0xFFF0EFE9:0xFF11151B);
-            if(style.get("background")==0){previewPhoto.setImageDrawable(wallpaper);addView(previewPhoto,new LayoutParams(-1,-1));}
+            if(style.imagery()){previewPhoto.setImageDrawable(wallpaper);addView(previewPhoto,new LayoutParams(-1,-1));}
         }
-        if(style.get("background")==0) {
+        if(style.imagery()) {
             View shade=new View(c);
             shade.setBackground(new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{0x990C0C0C,0x360C0C0C,0x700C0C0C}));
             addView(shade,new LayoutParams(-1,-1));
@@ -135,7 +135,7 @@ final class HomeSurface extends FrameLayout {
     }
     void wallpaper(Drawable drawable){
         int request=++materialRequest;
-        if((style.get("focus")!=1&&dockShelf==null)||style.get("background")!=0)return;
+        if((style.get("focus")!=1&&dockShelf==null)||!style.imagery())return;
         WallpaperMaterial.request(drawable,new int[]{14,42,2}[style.get("material")],field->{
             if(request!=materialRequest)return;material=field;paintShelf();
             for(View v:apps)if(dockShelf==null&&(v.isFocused()||(preview&&apps.indexOf(v)==selected)))
@@ -145,7 +145,7 @@ final class HomeSurface extends FrameLayout {
     }
     private void paintShelf(){
         if(dockShelf==null)return;
-        if(style.get("background")==0)
+        if(style.imagery())
             dockShelf.setBackground(new WallpaperMaterial.Glass(this,dockShelf,material,dp(22),new int[]{0x99101418,0x78101418,0x68101418}[style.get("material")]));
         else dockShelf.setBackground(WallpaperMaterial.rounded(style.light()?0xE6E0DED8:0xE624282B,dp(22)));
     }

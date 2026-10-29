@@ -7,7 +7,8 @@ final class AppearanceValues {
         int count;
         switch (key) {
             case "layout": case "focus": count = 2; break;
-            case "background": case "apps": case "controls": case "font": case "size":
+            case "background": count = 4; break;
+            case "apps": case "controls": case "font": case "size":
             case "material": case "dim": count = 3; break;
             default: return 0;
         }
